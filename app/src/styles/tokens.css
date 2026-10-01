@@ -1,0 +1,11 @@
+:root {
+  --ink: #030405;
+  --ink-soft: #0b0d10;
+  --silver: #eef2fa;
+  --silver-soft: rgba(216, 224, 238, 0.7);
+  --silver-dim: rgba(190, 199, 216, 0.55);
+  --warm: #f5bd87;
+  --warm-bright: #ffe0b8;
+  --line: rgba(220, 228, 242, 0.18);
+  --panel: rgba(8, 10, 14, 0.76);
+}
