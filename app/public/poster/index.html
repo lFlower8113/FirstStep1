@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>第一次 / FIRST STEP</title>
+<style>
+  html,body{margin:0;height:100%;background:#000;display:flex;align-items:center;justify-content:center;
+           font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;}
+  #wrap{position:relative;width:min(96vw,1500px);}
+  canvas{width:100%;display:block;box-shadow:0 40px 120px rgba(0,0,0,.9);}
+  #bar{position:fixed;bottom:22px;left:0;right:0;display:flex;gap:10px;justify-content:center;z-index:9}
+  button{background:rgba(255,255,255,.05);color:#cfcfd6;border:1px solid rgba(255,255,255,.18);
+         padding:9px 20px;border-radius:999px;font-size:12.5px;letter-spacing:.14em;cursor:pointer;
+         backdrop-filter:blur(10px);transition:.25s}
+  button:hover{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.4)}
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c" width="3200" height="1800"></canvas></div>
+<div id="bar">
+  <button id="dl">下载 PNG</button>
+  <button id="anim">暂停动效</button>
+</div>
+<script>
+/* ─────────────────────────────────────────────────────────────
+   第一次 / FIRST STEP — premium launch poster
+   3200 × 1800 (16:9) · black · silver white · one warm light
+   ───────────────────────────────────────────────────────────── */
+const W = 3200, H = 1800;
+const cvs = document.getElementById('c'), ctx = cvs.getContext('2d');
+const VPX = W * 0.5, VPY = H * 0.545;          // vanishing point / horizon
+const FEET_Y = H * 0.815, FIG_H = H * 0.172;  // figure on the path
+
+// deterministic randomness — the poster is identical every render
+let _s = 0x2f6e2b1;
+const rnd = () => (_s = (_s * 1664525 + 1013904223) >>> 0) / 4294967296;
+const rr = (a, b) => a + rnd() * (b - a);
+
+/* ── atmosphere ─────────────────────────────────────────────── */
+function background() {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+
+  // deep ambient haze rising from the light
+  let g = ctx.createRadialGradient(VPX, VPY, 0, VPX, VPY, H * 0.95);
+  g.addColorStop(0,   'rgba(150,158,175,0.16)');
+  g.addColorStop(0.28,'rgba(88,94,110,0.075)');
+  g.addColorStop(0.62,'rgba(34,36,45,0.028)');
+  g.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+
+  // faint horizon breath
+  g = ctx.createLinearGradient(0, VPY - H * 0.10, 0, VPY + H * 0.06);
+  g.addColorStop(0, 'rgba(0,0,0,0)');
+  g.addColorStop(0.5, 'rgba(190,198,215,0.045)');
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, VPY - H * 0.10, W, H * 0.16);
+}
+
+/* ── the floor: a quiet simulation grid ─────────────────────── */
+function floor() {
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, VPY, W, H - VPY);
+  ctx.clip();
+
+  // perspective lines converging on the vanishing point
+  const lines = 34;
+  for (let i = -lines; i <= lines; i++) {
+    const spread = i * (W / 15);
+    const near = VPY + (H - VPY) * 1.5;
+    const edgeFade = 1 - Math.min(1, Math.abs(i) / lines);
+    const a = 0.052 * edgeFade;
+    const lg = ctx.createLinearGradient(VPX, VPY, VPX + spread, near);
+    lg.addColorStop(0, 'rgba(190,198,215,0)');
+    lg.addColorStop(1, `rgba(190,198,215,${a.toFixed(3)})`);
+    ctx.strokeStyle = lg;
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.moveTo(VPX + spread * 0.012, VPY + 0.5);
+    ctx.lineTo(VPX + spread, near);
+    ctx.stroke();
+  }
+
+  // depth rings, exponentially spaced
+  for (let k = 1; k <= 26; k++) {
+    const t = k / 26;
+    const y = VPY + (H - VPY) * (Math.pow(t, 2.55));
+    const a = 0.05 * (1 - t) + 0.004;
+    const lg = ctx.createLinearGradient(0, y - 3, 0, y + 3);
+    lg.addColorStop(0, 'rgba(190,198,215,0)');
+    lg.addColorStop(0.5, `rgba(190,198,215,${a.toFixed(3)})`);
+    lg.addColorStop(1, 'rgba(190,198,215,0)');
+    ctx.fillStyle = lg;
+    ctx.fillRect(0, y - 2, W, 4);
+  }
+  ctx.restore();
+}
+
+/* ── the beam of light leading forward ──────────────────────── */
+const WARM = [255, 186, 120];   // one warm light
+const COOL = [214, 222, 238];   // silver white
+
+function beam(t) {
+  const botY = H * 1.02;
+  const topW = W * 0.028, botW = W * 0.30;
+  const breathe = 1 + Math.sin(t * 0.55) * 0.016;
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+
+  // volumetric wedge
+  const g = ctx.createLinearGradient(0, VPY, 0, botY);
+  g.addColorStop(0,    `rgba(${WARM[0]},${WARM[1]},${WARM[2]},0.30)`);
+  g.addColorStop(0.16, `rgba(${WARM[0]},${WARM[1]},${WARM[2]},0.115)`);
+  g.addColorStop(0.52, `rgba(${COOL[0]},${COOL[1]},${COOL[2]},0.045)`);
+  g.addColorStop(1,    'rgba(120,130,150,0)');
+  ctx.beginPath();
+  ctx.moveTo(VPX - topW * breathe, VPY);
+  ctx.lineTo(VPX + topW * breathe, VPY);
+  ctx.lineTo(VPX + botW, botY);
+  ctx.lineTo(VPX - botW, botY);
+  ctx.closePath();
+  ctx.fillStyle = g;
+  ctx.fill();
+
+  // soft bloom at the source
+  const b = ctx.createRadialGradient(VPX, VPY, 0, VPX, VPY, W * 0.14);
+  b.addColorStop(0,  `rgba(255,225,190,0.40)`);
+  b.addColorStop(0.3,`rgba(255,190,130,0.12)`);
+  b.addColorStop(1,  'rgba(0,0,0,0)');
+  ctx.fillStyle = b;
+  ctx.beginPath();
+  ctx.arc(VPX, VPY, W * 0.14, 0, 7);
+  ctx.fill();
+
+  // horizon line of light
+  const h = ctx.createLinearGradient(VPX - W * 0.28, 0, VPX + W * 0.28, 0);
+  h.addColorStop(0,   'rgba(0,0,0,0)');
+  h.addColorStop(0.5, `rgba(255,232,205,${(0.30 + Math.sin(t * 0.55) * 0.05).toFixed(3)})`);
+  h.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.fillStyle = h;
+  ctx.fillRect(VPX - W * 0.28, VPY - 1.4, W * 0.56, 2.8);
+  ctx.restore();
+}
+
+/* ── the footprint: one glowing step ────────────────────────── */
+function footprint(cx, cy, size, alpha, warm) {
+  const pulse = 1 + Math.sin(performance.now() / 900) * 0.05;
+  const col = warm ? WARM : COOL;
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.translate(cx, cy);
+
+  // contact glow
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 2.9 * pulse);
+  g.addColorStop(0,   `rgba(${col[0]},${col[1]},${col[2]},${(alpha * 0.34).toFixed(3)})`);
+  g.addColorStop(0.4, `rgba(${col[0]},${col[1]},${col[2]},${(alpha * 0.10).toFixed(3)})`);
+  g.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, size * 2.9, size * 1.5, 0, 0, 7);
+  ctx.fill();
+
+  // the print itself — sole + toe
+  ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${alpha.toFixed(3)})`;
+  ctx.beginPath();
+  ctx.ellipse(0, size * 0.30, size * 0.62, size * 1.02, 0, 0, 7);   // sole
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(0, -size * 0.82, size * 0.40, size * 0.50, 0, 0, 7);   // toe pad
+  ctx.fill();
+
+  // crisp core
+  ctx.fillStyle = `rgba(255,255,255,${(alpha * 0.55).toFixed(3)})`;
+  ctx.beginPath();
+  ctx.ellipse(0, size * 0.26, size * 0.24, size * 0.42, 0, 0, 7);
+  ctx.fill();
+  ctx.restore();
+}
+
+function footprints(t) {
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  // the receding path — echoes leading toward the unknown
+  for (let i = 0; i < 9; i++) {
+    const k = (i + 1) / 9;
+    const y = FEET_Y - (FEET_Y - VPY) * Math.pow(k, 1.35);
+    const x = VPX + Math.sin(i * 1.1) * W * 0.006 * (1 - k);
+    const s = W * 0.0125 * (1 - k) + W * 0.0016;
+    const a = 0.30 * (1 - k) * (1 - k);
+    footprint(x, y, s, a, false);
+  }
+  ctx.restore();
+
+  // the first step — warm, present, alive
+  const fx = VPX - W * 0.028, fy = FEET_Y - H * 0.030;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  footprint(fx, fy, W * 0.0135, 0.92, true);
+  ctx.restore();
+}
+
+/* ── the figure, standing before the unknown ────────────────── */
+function drawFigure() {
+  const off = document.createElement('canvas');
+  off.width = W; off.height = H;
+  const o = off.getContext('2d');
+
+  const x0 = VPX - W * 0.004, y0 = FEET_Y - FIG_H;  // top-left of figure box
+  const s  = FIG_H / 100;                           // unit -> px
+
+  const P = (x, y) => [x0 + x * s, y0 + y * s];
+
+  o.fillStyle = '#000';
+  o.strokeStyle = '#000';
+
+  // head
+  o.beginPath(); o.ellipse(...P(50, 9.5), 7.4 * s, 8.8 * s, 0, 0, 7); o.fill();
+  // neck
+  o.fillRect(...P(46, 15), 8 * s, 8 * s);
+  // torso
+  o.beginPath();
+  o.moveTo(...P(37.5, 22));
+  o.bezierCurveTo(...P(41, 18.5), ...P(59, 18.5), ...P(62.5, 22));
+  o.bezierCurveTo(...P(61, 33), ...P(59, 44), ...P(58.5, 52));
+  o.lineTo(...P(41.5, 52));
+  o.bezierCurveTo(...P(41, 44), ...P(39, 33), ...P(37.5, 22));
+  o.closePath(); o.fill();
+  // arms
+  o.lineCap = 'round'; o.lineWidth = 8.6 * s;
+  o.beginPath(); o.moveTo(...P(39.5, 23)); o.lineTo(...P(34.5, 50)); o.lineTo(...P(34, 58)); o.stroke();
+  o.beginPath(); o.moveTo(...P(60.5, 23)); o.lineTo(...P(65.5, 50)); o.lineTo(...P(66, 58)); o.stroke();
+  // legs
+  o.lineWidth = 10.5 * s;
+  o.beginPath(); o.moveTo(...P(45.5, 50)); o.lineTo(...P(43.5, 80)); o.lineTo(...P(43, 97)); o.stroke();
+  o.beginPath(); o.moveTo(...P(54.5, 50)); o.lineTo(...P(56.5, 80)); o.lineTo(...P(57, 97)); o.stroke();
+  // feet
+  o.beginPath(); o.ellipse(...P(42, 97.5), 5.2 * s, 2.6 * s, 0, 0, 7); o.fill();
+  o.beginPath(); o.ellipse(...P(58, 97.5), 5.2 * s, 2.6 * s, 0, 0, 7); o.fill();
+
+  // rim light from the light ahead — top-lit, fading to nothing at the feet
+  o.globalCompositeOperation = 'source-atop';
+  const rl = o.createLinearGradient(0, y0 - FIG_H * 0.06, 0, y0 + FIG_H * 1.02);
+  rl.addColorStop(0,    `rgba(255,236,214,0.85)`);
+  rl.addColorStop(0.30, `rgba(228,232,244,0.34)`);
+  rl.addColorStop(0.72, `rgba(150,162,186,0.07)`);
+  rl.addColorStop(1,    'rgba(0,0,0,0)');
+  o.fillStyle = rl;
+  o.fillRect(x0 - 40, y0 - FIG_H * 0.2, 80 * s + 80, FIG_H * 1.3);
+
+  // contact shadow
+  o.globalCompositeOperation = 'destination-over';
+  o.fillStyle = 'rgba(0,0,0,0.75)';
+  o.beginPath(); o.ellipse(...P(50, 99), 15 * s, 3.2 * s, 0, 0, 7); o.fill();
+
+  // place: soft bloom beneath the silhouette
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.shadowColor = 'rgba(255,206,160,0.42)';
+  ctx.shadowBlur = FIG_H * 0.5;
+  ctx.globalAlpha = 0.85;
+  ctx.drawImage(off, 0, 0);
+  ctx.restore();
+}
+
+/* ── transparent fragments of a simulation space ────────────── */
+function fragments(t) {
+  const shards = [];
+  for (let i = 0; i < 16; i++) {
+    shards.push({
+      x: rr(0.06, 0.94) * W,
+      y: rr(0.16, 0.92) * H,
+      w: rr(0.02, 0.085) * W,
+      h: rr(0.03, 0.20) * H,
+      r: rr(-0.9, 0.9),
+      a: rr(0.030, 0.085),
+      d: rr(0, 6.28),
+      s: rr(0.15, 0.45),
+    });
+  }
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (const s of shards) {
+    const drift = Math.sin(t * 0.22 + s.d) * s.s * 0.02 * H;
+    ctx.save();
+    ctx.translate(s.x, s.y + drift);
+    ctx.rotate(s.r + Math.sin(t * 0.13 + s.d) * 0.035);
+    ctx.strokeStyle = `rgba(196,208,230,${s.a.toFixed(3)})`;
+    ctx.lineWidth = 1.15;
+    // a plane, seen edge-on and in perspective
+    ctx.beginPath();
+    ctx.moveTo(-s.w, -s.h * 0.5);
+    ctx.lineTo(s.w, -s.h * 0.34);
+    ctx.lineTo(s.w * 0.78, s.h * 0.5);
+    ctx.lineTo(-s.w * 0.92, s.h * 0.36);
+    ctx.closePath();
+    ctx.stroke();
+    // internal strut — the edge of a 3D volume
+    ctx.beginPath();
+    ctx.moveTo(-s.w * 0.92, s.h * 0.36);
+    ctx.lineTo(-s.w * 0.62, s.h * 0.30);
+    ctx.moveTo(s.w * 0.78, s.h * 0.5);
+    ctx.lineTo(s.w * 0.52, s.h * 0.42);
+    ctx.stroke();
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+/* ── digital dust ───────────────────────────────────────────── */
+const dust = [];
+for (let i = 0; i < 420; i++) {
+  const depth = Math.pow(rnd(), 0.6);
+  dust.push({
+    x: rnd() * W, y: rr(VPY - H * 0.22, H),
+    r: 0.7 + depth * 2.9,
+    a: 0.05 + depth * 0.42,
+    vy: -(0.06 + depth * 0.30),
+    d: rr(0, 6.28),
+    warm: rnd() > 0.90,
+  });
+}
+function drawDust(t) {
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (const p of dust) {
+    const y = ((p.y - t * p.vy) % (H + 200) + H + 200) % (H + 200) - 100;
+    const x = p.x + Math.sin(t * 0.30 + p.d) * 11;
+    const tw = 0.62 + 0.38 * Math.sin(t * 0.9 + p.d * 3);
+    const col = p.warm ? WARM : COOL;
+    ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${(p.a * tw).toFixed(3)})`;
+    ctx.beginPath();
+    ctx.arc(x, y, p.r, 0, 7);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+/* ── type ───────────────────────────────────────────────────── */
+const CN = '"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif';
+const EN = '"Helvetica Neue",Inter,"Segoe UI",Arial,sans-serif';
+
+function tracked(text, cx, y, size, font, track, fill) {
+  ctx.font = `${size}px ${font}`;
+  ctx.fillStyle = fill;
+  ctx.textBaseline = 'alphabetic';
+  const chars = [...text];
+  const w = chars.reduce((a, ch) => a + ctx.measureText(ch).width + track, 0) - track;
+  let x = cx - w / 2;
+  for (const ch of chars) {
+    ctx.fillText(ch, x, y);
+    x += ctx.measureText(ch).width + track;
+  }
+  return w;
+}
+
+function type(t) {
+  ctx.save();
+  ctx.textAlign = 'left';
+
+  // 第一次
+  const breathe = 0.62 + Math.sin(t * 0.55) * 0.012;
+  ctx.shadowColor = `rgba(230,238,255,${(0.30 * breathe).toFixed(3)})`;
+  ctx.shadowBlur = H * 0.055;
+  tracked('第一次', VPX, H * 0.285, H * 0.098, `200 ${CN}`, H * 0.030, 'rgba(238,242,250,0.96)');
+  ctx.shadowBlur = 0;
+
+  // FIRST STEP
+  tracked('FIRST STEP', VPX, H * 0.352, H * 0.0195, `300 ${EN}`, H * 0.0175, 'rgba(190,199,216,0.60)');
+
+  // hairline rule
+  const lw = W * 0.052;
+  const g = ctx.createLinearGradient(VPX - lw, 0, VPX + lw, 0);
+  g.addColorStop(0,   'rgba(255,255,255,0)');
+  g.addColorStop(0.5, `rgba(210,220,240,${(0.30 * breathe).toFixed(3)})`);
+  g.addColorStop(1,   'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(VPX - lw, H * 0.372, lw * 2, 1.3);
+
+  // 探索你的第一步
+  tracked('探索你的第一步', VPX, H * 0.418, H * 0.0245, `200 ${CN}`, H * 0.0155, 'rgba(168,177,196,0.72)');
+
+  ctx.restore();
+}
+
+/* ── finish: vignette + grain ───────────────────────────────── */
+let grain = null;
+function makeGrain() {
+  const g = document.createElement('canvas');
+  g.width = 480; g.height = 270;
+  const gg = g.getContext('2d');
+  const im = gg.createImageData(480, 270);
+  for (let i = 0; i < im.data.length; i += 4) {
+    const v = (rnd() * 255) | 0;
+    im.data[i] = im.data[i + 1] = im.data[i + 2] = v;
+    im.data[i + 3] = 26;
+  }
+  gg.putImageData(im, 0, 0);
+  grain = g;
+}
+
+function finish() {
+  const v = ctx.createRadialGradient(VPX, VPY, H * 0.22, VPX, VPY, H * 1.18);
+  v.addColorStop(0, 'rgba(0,0,0,0)');
+  v.addColorStop(0.62, 'rgba(0,0,0,0.42)');
+  v.addColorStop(1, 'rgba(0,0,0,0.90)');
+  ctx.fillStyle = v;
+  ctx.fillRect(0, 0, W, H);
+
+  if (grain) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.globalAlpha = 0.55;
+    ctx.drawImage(grain, 0, 0, W, H);
+    ctx.restore();
+  }
+}
+
+/* ── interactive qr portal (wordless, aesthetic fusion) ────── */
+const QR_SRC = 'data:image/png;base64,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';
+const qrImg = new Image();
+qrImg.src = QR_SRC;
+
+function drawQR(t) {
+  const size = 220;
+  const marginX = 180;
+  const marginY = 160;
+  const x = W - marginX - size;
+  const y = H - marginY - size;
+  const r = 12;
+
+  ctx.save();
+
+  // 1. Subtle warm ambient glow behind the portal
+  const bgGlow = ctx.createRadialGradient(x + size / 2, y + size / 2, size * 0.2, x + size / 2, y + size / 2, size * 0.95);
+  bgGlow.addColorStop(0, 'rgba(255, 186, 120, 0.08)');
+  bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = bgGlow;
+  ctx.fillRect(x - 40, y - 40, size + 80, size + 80);
+
+  // 2. Pure, rounded QR Code plate
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+  ctx.shadowBlur = 24;
+  ctx.beginPath();
+  if (ctx.roundRect) {
+    ctx.roundRect(x, y, size, size, r);
+  } else {
+    ctx.rect(x, y, size, size);
+  }
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Hairline subtle plate border
+  ctx.strokeStyle = 'rgba(214, 222, 238, 0.35)';
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+
+  // Draw high-resolution QR image with clean quiet zone
+  if (qrImg.complete && qrImg.naturalWidth > 0) {
+    const pad = 12;
+    ctx.drawImage(qrImg, x + pad, y + pad, size - pad * 2, size - pad * 2);
+  }
+
+  // 3. Delicate HUD corner brackets (framing the QR like a simulation reticle)
+  const offset = 14;
+  const bx = x - offset;
+  const by = y - offset;
+  const bw = size + offset * 2;
+  const bh = size + offset * 2;
+  const cornerLen = 16;
+  const breathe = 0.65 + Math.sin(t * 0.8) * 0.25;
+
+  ctx.strokeStyle = `rgba(255, 186, 120, ${breathe.toFixed(3)})`;
+  ctx.lineWidth = 2.0;
+
+  ctx.beginPath();
+  ctx.moveTo(bx, by + cornerLen); ctx.lineTo(bx, by); ctx.lineTo(bx + cornerLen, by);
+  ctx.moveTo(bx + bw - cornerLen, by); ctx.lineTo(bx + bw, by); ctx.lineTo(bx + bw, by + cornerLen);
+  ctx.moveTo(bx, by + bh - cornerLen); ctx.lineTo(bx, by + bh); ctx.lineTo(bx + cornerLen, by + bh);
+  ctx.moveTo(bx + bw - cornerLen, by + bh); ctx.lineTo(bx + bw, by + bh); ctx.lineTo(bx + bw, by + bh - cornerLen);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+/* ── frame ──────────────────────────────────────────────────── */
+function frame(t) {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 1;
+  background();
+  floor();
+  beam(t);
+  fragments(t);
+  footprints(t);
+  drawFigure();
+  drawDust(t);
+  type(t);
+  finish();
+  drawQR(t);
+}
+
+makeGrain();
+
+let t0 = performance.now(), running = true;
+function loop(now) { if (running) frame((now - t0) / 1000); requestAnimationFrame(loop); }
+frame(0);
+requestAnimationFrame(loop);
+
+document.getElementById('dl').onclick = () => {
+  frame((performance.now() - t0) / 1000);
+  cvs.toBlob(b => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(b);
+    a.download = 'FIRST-STEP-poster-16x9.png';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }, 'image/png');
+};
+document.getElementById('anim').onclick = e => {
+  running = !running;
+  e.target.textContent = running ? '暂停动效' : '播放动效';
+};
+</script>
+</body>
+</html>
