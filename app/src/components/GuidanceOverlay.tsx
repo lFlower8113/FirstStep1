@@ -40,6 +40,33 @@ const relaxedTimeoutPhases: Partial<Record<PhaseId, number>> = {
   waitGate: 14000,
 };
 
+function getPhaseStep(phase: PhaseId): string {
+  switch (phase) {
+    case 'arrival':
+    case 'lookAround':
+    case 'observe':
+      return '01 / 探索大厅';
+    case 'demoBoard':
+    case 'findFlight':
+      return '02 / 锁定航班';
+    case 'goCounter':
+    case 'baggage':
+      return '03 / 值机托运';
+    case 'followPath':
+    case 'securityDemo':
+    case 'securityTip':
+    case 'security':
+    case 'reduceGuidance':
+      return '04 / 安全检查';
+    case 'waitGate':
+    case 'findGate':
+    case 'board':
+      return '05 / 前往登机';
+    default:
+      return 'FIRST STEP';
+  }
+}
+
 export function GuidanceOverlay({
   state,
   dispatch,
@@ -146,16 +173,20 @@ export function GuidanceOverlay({
       <main className="overlay-content">
         {!isCabin ? (
           <section className="guidance-panel">
-            <p className="eyebrow italic">{copy.en}</p>
-            <h1>
-              {copy.zh.split('\n').map((line) => (
-                <span key={line}>
-                  {line}
-                  <br />
-                </span>
-              ))}
-            </h1>
-            {state.hintLevel > 0 && copy.hint && <p className="hint">{copy.hint}</p>}
+            <div key={state.phase} className="guidance-step-card">
+              <div className="guidance-meta-row">
+                <span className="step-phase-badge">{getPhaseStep(state.phase)}</span>
+                <p className="eyebrow italic">{copy.en}</p>
+              </div>
+              <h1>
+                {copy.zh.split('\n').map((line) => (
+                  <span key={line}>
+                    {line}
+                    <br />
+                  </span>
+                ))}
+              </h1>
+              {state.hintLevel > 0 && copy.hint && <p className="hint">{copy.hint}</p>}
 
           {/* Phase 1: Intro */}
           {state.phase === 'intro' && (
@@ -516,7 +547,8 @@ export function GuidanceOverlay({
           )}
 
           {/* End of terminal guidance */}
-        </section>
+            </div>
+          </section>
         ) : (
           <section className="cabin-overlay-hud">
             {/* Phase 13: Arrive / Cabin seated */}

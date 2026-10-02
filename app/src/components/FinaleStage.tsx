@@ -53,7 +53,7 @@ export function FinaleStage({
         <div className="finale-card-wrapper">
           {/* Phase 1: Arrive / Onboard */}
           {state.phase === 'arrive' && (
-            <div className="finale-narrative-card">
+            <div key="arrive" className="finale-narrative-card phase-transition-card">
               <span className="finale-card-eyebrow">WELCOME ABOARD · 顺利启航</span>
               <h1 className="finale-card-title">你已经顺利坐上了飞机</h1>
               <p className="finale-card-text">
@@ -74,7 +74,7 @@ export function FinaleStage({
 
           {/* Phase 2: Reflection */}
           {state.phase === 'reflection' && (
-            <div className="finale-narrative-card is-reflection">
+            <div key="reflection" className="finale-narrative-card is-reflection phase-transition-card">
               <div className="reflection-card-header">
                 <span className="finale-card-eyebrow">A NOTE FROM YOUR JOURNEY · 旅程沉淀</span>
                 <span className="source-chip">{reflection?.source === 'ai' ? 'AI 寄语' : 'FIRST STEP 寄语'}</span>
@@ -112,7 +112,7 @@ export function FinaleStage({
 
           {/* Phase 3: Takeaways */}
           {state.phase === 'takeaways' && (
-            <div className="finale-narrative-card is-takeaways">
+            <div key="takeaways" className="finale-narrative-card is-takeaways phase-transition-card">
               <span className="finale-card-eyebrow">FOUR TIMELESS RULES · 飞行常识</span>
               <h2 className="finale-card-title">四个最受用的飞行常识，去哪个机场都管用</h2>
 
@@ -164,7 +164,7 @@ export function FinaleStage({
 
           {/* Phase 4: Complete Finale */}
           {state.phase === 'complete' && (
-            <div className="finale-narrative-card is-complete">
+            <div key="complete" className="finale-narrative-card is-complete phase-transition-card">
               <span className="finale-card-eyebrow">A SMALL BEGINNING · 迈向现实</span>
               <h2 className="finale-card-title">生活里的许多第一次，也是一样</h2>
               <p className="finale-complete-lead">

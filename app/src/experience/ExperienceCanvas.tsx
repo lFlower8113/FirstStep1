@@ -30,31 +30,124 @@ export const cameraPosByPhase: Partial<Record<PhaseId, THREE.Vector3>> = {
 
 export type LookInput = { yaw: number; pitch: number; active: boolean };
 
+export const fovByPhase: Partial<Record<PhaseId, number>> = {
+  arrival: 62,
+  lookAround: 62,
+  observe: 60,
+  demoBoard: 55,
+  findFlight: 55,
+  goCounter: 56,
+  baggage: 56,
+  followPath: 60,
+  securityDemo: 54,
+  securityTip: 54,
+  security: 54,
+  reduceGuidance: 60,
+  waitGate: 58,
+  findGate: 55,
+  board: 56,
+};
+
+/* Critically damped harmonic oscillator for silky-smooth camera dolly without abrupt starts */
+function smoothDampVec3(
+  current: THREE.Vector3,
+  target: THREE.Vector3,
+  velocity: THREE.Vector3,
+  smoothTime: number,
+  maxSpeed: number,
+  deltaTime: number
+): void {
+  smoothTime = Math.max(0.0001, smoothTime);
+  const omega = 2 / smoothTime;
+  const x = omega * deltaTime;
+  const exp = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
+
+  let changeX = current.x - target.x;
+  let changeY = current.y - target.y;
+  let changeZ = current.z - target.z;
+
+  const maxChange = maxSpeed * smoothTime;
+  const maxChangeSq = maxChange * maxChange;
+  const sqDist = changeX * changeX + changeY * changeY + changeZ * changeZ;
+
+  if (sqDist > maxChangeSq) {
+    const scale = maxChange / Math.sqrt(sqDist);
+    changeX *= scale;
+    changeY *= scale;
+    changeZ *= scale;
+  }
+
+  const origTargetX = target.x;
+  const origTargetY = target.y;
+  const origTargetZ = target.z;
+
+  const toX = current.x - changeX;
+  const toY = current.y - changeY;
+  const toZ = current.z - changeZ;
+
+  const tempX = (velocity.x + omega * changeX) * deltaTime;
+  const tempY = (velocity.y + omega * changeY) * deltaTime;
+  const tempZ = (velocity.z + omega * changeZ) * deltaTime;
+
+  velocity.x = (velocity.x - omega * tempX) * exp;
+  velocity.y = (velocity.y - omega * tempY) * exp;
+  velocity.z = (velocity.z - omega * tempZ) * exp;
+
+  let outX = toX + (changeX + tempX) * exp;
+  let outY = toY + (changeY + tempY) * exp;
+  let outZ = toZ + (changeZ + tempZ) * exp;
+
+  if ((origTargetX - current.x > 0) === (outX > origTargetX)) {
+    outX = origTargetX;
+    velocity.x = 0;
+  }
+  if ((origTargetY - current.y > 0) === (outY > origTargetY)) {
+    outY = origTargetY;
+    velocity.y = 0;
+  }
+  if ((origTargetZ - current.z > 0) === (outZ > origTargetZ)) {
+    outZ = origTargetZ;
+    velocity.z = 0;
+  }
+
+  current.x = outX;
+  current.y = outY;
+  current.z = outZ;
+}
+
 /* A slow establishing sweep, then dynamic camera positioning per milestone. */
 function Rig({ state, lookRef }: { state: AppState; lookRef: { current: LookInput } }) {
   const { camera } = useThree();
   const look = useRef(new THREE.Vector3(0, 1.8, -40));
+  const camVel = useRef(new THREE.Vector3(0, 0, 0));
+  const lookVel = useRef(new THREE.Vector3(0, 0, 0));
   const fog = useRef<THREE.Fog | null>(null);
   const lastPhase = useRef<string>('');
   const sweep = useRef(0);
+  const initialized = useRef(false);
 
-  useFrame((_, delta) => {
-    const ease = 1 - Math.pow(0.0022, delta);
+  useFrame(({ clock }, delta) => {
+    // Clamp delta to prevent jerky jumps on mobile frame drops or background tabs
+    const dt = Math.min(delta, 0.05);
     const focus = focusByPhase[state.phase];
     const targetCameraPos = cameraPosByPhase[state.phase] ?? new THREE.Vector3(0.5, 1.72, 2.2);
     const free = FREE_LOOK.includes(state.phase);
     const behind = targetCameraPos.z;
 
-    if (lastPhase.current !== state.phase) {
+    if (!initialized.current) {
+      initialized.current = true;
+      camera.position.copy(targetCameraPos);
+      if (focus) look.current.copy(focus);
       lastPhase.current = state.phase;
-      if (focus && !free) look.current.copy(focus);
+    } else if (lastPhase.current !== state.phase) {
+      lastPhase.current = state.phase;
       if (state.phase === 'lookAround') sweep.current = 0;
     }
 
     let targetLook: THREE.Vector3;
     if (free) {
       if (state.phase === 'arrival') {
-        sweep.current = Math.min(1, sweep.current + delta * 0.12);
+        sweep.current = Math.min(1, sweep.current + dt * 0.12);
         const t = sweep.current;
         const angle = -0.55 + t * 1.1;
         const radius = 26;
@@ -68,11 +161,35 @@ function Rig({ state, lookRef }: { state: AppState; lookRef: { current: LookInpu
       targetLook = focus ?? new THREE.Vector3(0, 1.8, -30);
     }
 
-    camera.position.lerp(targetCameraPos, ease);
-    look.current.lerp(targetLook, free ? 1 - Math.pow(0.006, delta) : ease);
+    // 1. Silky SmoothDamp for camera translation (zero jerk at start, graceful cruise, cushioned stop)
+    smoothDampVec3(camera.position, targetCameraPos, camVel.current, 0.82, 18, dt);
+
+    // 2. SmoothDamp for camera gaze (orienting smoothly; faster on interactive drag, filmic on guidance)
+    const lookSmoothTime = free && lookRef.current.active ? 0.12 : 0.62;
+    smoothDampVec3(look.current, targetLook, lookVel.current, lookSmoothTime, 24, dt);
+
+    // 3. Subtle steadicam breathing / organic presence
+    const breatheY = Math.sin(clock.elapsedTime * 1.4) * 0.006;
+    const breatheX = Math.cos(clock.elapsedTime * 0.9) * 0.004;
+
+    camera.position.y += breatheY;
+    camera.position.x += breatheX;
     camera.lookAt(look.current);
+    camera.position.y -= breatheY;
+    camera.position.x -= breatheX;
+
+    // 4. Dynamic cinematic FOV (dolly-zoom feel)
+    const targetFov = fovByPhase[state.phase] ?? 60;
+    const persCamera = camera as THREE.PerspectiveCamera;
+    if (persCamera.isPerspectiveCamera) {
+      persCamera.fov = THREE.MathUtils.damp(persCamera.fov, targetFov, 2.5, dt);
+      persCamera.updateProjectionMatrix();
+    }
+
+    // 5. Dynamic fog distance
     if (fog.current) {
-      fog.current.far = THREE.MathUtils.lerp(fog.current.far, NEAR_FAR.start, ease);
+      const targetFar = state.phase === 'board' || state.phase === 'arrive' ? NEAR_FAR.arrive : NEAR_FAR.start;
+      fog.current.far = THREE.MathUtils.damp(fog.current.far, targetFar, 1.8, dt);
     }
   });
 
@@ -85,10 +202,14 @@ export function useLookInput(enabled: boolean) {
   const [dragging, setDragging] = useState(false);
 
   useEffect(() => {
-    if (!enabled) { input.current.active = false; return; }
+    if (!enabled) { input.current.active = false; setDragging(false); return; }
     let lastX = 0;
     let lastY = 0;
     const onDown = (event: PointerEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest('button, a, input, .guidance-panel, .packing-stage, .tip-card, .boarding-pass-card')) {
+        return;
+      }
       input.current.active = true;
       lastX = event.clientX; lastY = event.clientY;
       setDragging(true);
@@ -152,9 +273,10 @@ export function ExperienceCanvas({ state, onSelectFlight, onSelectGate, onSelect
 }) {
   const flightHighlighted = state.phase === 'demoBoard' || state.phase === 'findFlight' || state.flightAttempts > 0;
   const gateLit = state.phase === 'findGate' || state.phase === 'arrive' || state.gateFoundWithoutDirectHighlight;
-  const dpr = useMemo<[number, number]>(() => [1, Math.min(2, window.devicePixelRatio || 1)], []);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 680;
+  const dpr = useMemo<[number, number]>(() => [1, isMobile ? 1.5 : Math.min(2, window.devicePixelRatio || 1)], [isMobile]);
 
-  return <Canvas camera={{ position: [0.5, 1.72, 2.2], fov: 62, near: 0.1, far: 200 }} dpr={dpr} gl={{ antialias: true }}>
+  return <Canvas camera={{ position: [0.5, 1.72, 2.2], fov: 62, near: 0.1, far: 200 }} dpr={dpr} gl={{ antialias: true, powerPreference: 'high-performance' }}>
     <color attach="background" args={[FOG_COLOR]} />
     <Rig state={state} lookRef={lookRef} />
 
@@ -175,6 +297,6 @@ export function ExperienceCanvas({ state, onSelectFlight, onSelectGate, onSelect
     <TerminalScene state={state} flightHighlighted={flightHighlighted} gateLit={gateLit} onSelectFlight={onSelectFlight} onSelectGate={onSelectGate} onSelectCounter={onSelectCounter} />
     <Companion avatarId={state.avatarId} phaseRef={phaseRef} />
     <Beacon state={state} />
-    <Sparkles count={140} scale={[24, 9, 80]} size={1.5} speed={0.12} color="#c8d6ea" opacity={0.2} />
+    <Sparkles count={isMobile ? 55 : 140} scale={[24, 9, 80]} size={1.5} speed={0.12} color="#c8d6ea" opacity={0.2} />
   </Canvas>;
 }

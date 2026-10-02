@@ -4,7 +4,7 @@ export function ScenarioLibrary({ onEnter, onBack }: { onEnter: () => void; onBa
   return <section className="scenario-library" aria-label="所有第一次">
     <p className="handwritten-note">Every journey begins with one step.</p>
     <header className="topbar"><span>FIRST STEP</span><span className="topbar-right">全部 / ALL</span></header>
-    <div className="library-inner">
+    <div className="library-inner phase-transition-card">
       <p className="eyebrow italic">all your firsts</p>
       <h1>所有第一次</h1>
       <p className="library-lead">下面这些事，你都可以先在这里走一遍。</p>

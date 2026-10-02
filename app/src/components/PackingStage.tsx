@@ -31,7 +31,7 @@ export function PackingStage({ state, dispatch }: { state: AppState; dispatch: R
           <span className="topbar-right">01 / 出发前准备 · 在家里</span>
         </header>
 
-        <div className="packing-inner">
+        <div key="packing" className="packing-inner phase-transition-card">
           <p className="eyebrow italic">{copy.en}</p>
           <h1>{copy.zh}</h1>
           <p className="muted">
@@ -134,7 +134,7 @@ export function PackingStage({ state, dispatch }: { state: AppState; dispatch: R
         <span className="topbar-right">01 / 出发前准备 · 时间规划</span>
       </header>
 
-      <div className="packing-inner">
+      <div key="packingList" className="packing-inner phase-transition-card">
         <p className="eyebrow italic">{copy.en}</p>
         <h1>{copy.zh}</h1>
         <p className="muted">

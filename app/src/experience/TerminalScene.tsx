@@ -4,7 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import { palettes, spriteCanvas, walkOrder, frameOrder, type SpriteGender } from '../data/pixelSprites';
 import type { AppState, PhaseId } from '../types';
 
-export type PhaseProgress = { z: number; walking: boolean };
+export type PhaseProgress = { x?: number; z: number; walking: boolean };
 
 /* ─────────────────────────────────────────────────────────────
    Coordinate contract
@@ -33,30 +33,30 @@ export const focusByPhase: Partial<Record<PhaseId, THREE.Vector3>> = {
 };
 
 export const companionStop: Record<PhaseId, PhaseProgress> = {
-  landing: { z: 0, walking: false },
-  avatar: { z: 0, walking: false },
-  intro: { z: 0, walking: false },
-  packing: { z: 0, walking: false },
-  packingList: { z: 0, walking: false },
-  arrival: { z: 0, walking: false },
-  lookAround: { z: 0, walking: false },
-  observe: { z: 0, walking: false },
-  demoBoard: { z: -4.2, walking: true },
-  findFlight: { z: -5.4, walking: false },
-  goCounter: { z: -14.2, walking: true },
-  baggage: { z: -15.2, walking: false },
-  followPath: { z: -18.5, walking: true },
-  securityDemo: { z: -21.5, walking: true },
-  securityTip: { z: -22.5, walking: false },
-  security: { z: -22.5, walking: false },
-  reduceGuidance: { z: -28, walking: true },
-  waitGate: { z: -35, walking: true },
-  findGate: { z: -39, walking: true },
-  board: { z: -43.5, walking: true },
-  arrive: { z: -45.5, walking: true },
-  reflection: { z: -45.5, walking: false },
-  takeaways: { z: -45.5, walking: false },
-  complete: { z: -45.5, walking: false },
+  landing: { x: 0.55, z: 0, walking: false },
+  avatar: { x: 0.55, z: 0, walking: false },
+  intro: { x: 0.55, z: 0, walking: false },
+  packing: { x: 0.55, z: 0, walking: false },
+  packingList: { x: 0.55, z: 0, walking: false },
+  arrival: { x: 0.55, z: 0, walking: false },
+  lookAround: { x: 0.55, z: 0, walking: false },
+  observe: { x: 0.55, z: -1.2, walking: true },
+  demoBoard: { x: -3.8, z: -4.2, walking: true },
+  findFlight: { x: -3.8, z: -5.4, walking: false },
+  goCounter: { x: -7.2, z: -14.2, walking: true },
+  baggage: { x: -7.2, z: -15.2, walking: false },
+  followPath: { x: 0.2, z: -18.5, walking: true },
+  securityDemo: { x: 1.6, z: -21.5, walking: true },
+  securityTip: { x: 1.6, z: -22.5, walking: false },
+  security: { x: 1.6, z: -22.5, walking: false },
+  reduceGuidance: { x: 0, z: -28, walking: true },
+  waitGate: { x: 0, z: -35, walking: true },
+  findGate: { x: 0, z: -39, walking: true },
+  board: { x: 0, z: -43.5, walking: true },
+  arrive: { x: 0, z: -45.5, walking: true },
+  reflection: { x: 0, z: -45.5, walking: false },
+  takeaways: { x: 0, z: -45.5, walking: false },
+  complete: { x: 0, z: -45.5, walking: false },
 };
 
 const HALL = { length: 108, width: 30, height: 12 };
@@ -697,9 +697,13 @@ export function Companion({ avatarId, phaseRef }: { avatarId: SpriteGender; phas
 
   useFrame(({ camera, clock }, delta) => {
     if (!group.current) return;
-    group.current.position.z = THREE.MathUtils.lerp(group.current.position.z, phaseRef.current.z, 1 - Math.pow(0.02, delta));
-    const moving = Math.abs(phaseRef.current.z - group.current.position.z) > 0.14;
-    group.current.position.y = moving ? Math.abs(Math.sin(clock.elapsedTime * 7)) * 0.09 : Math.sin(clock.elapsedTime * 1.6) * 0.02;
+    const dt = Math.min(delta, 0.05);
+    const targetX = phaseRef.current.x ?? 0.55;
+    const targetZ = phaseRef.current.z;
+    group.current.position.x = THREE.MathUtils.damp(group.current.position.x, targetX, 2.8, dt);
+    group.current.position.z = THREE.MathUtils.damp(group.current.position.z, targetZ, 2.8, dt);
+    const moving = Math.abs(targetZ - group.current.position.z) > 0.08 || Math.abs(targetX - group.current.position.x) > 0.08;
+    group.current.position.y = 0.92 + (moving ? Math.abs(Math.sin(clock.elapsedTime * 7)) * 0.08 : Math.sin(clock.elapsedTime * 1.6) * 0.02);
     if (sprite.current) sprite.current.quaternion.copy(camera.quaternion);
     if (clock.elapsedTime - last.current > (moving ? 0.14 : 0.62)) {
       last.current = clock.elapsedTime;
