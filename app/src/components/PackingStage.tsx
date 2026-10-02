@@ -88,29 +88,36 @@ export function PackingStage({ state, dispatch }: { state: AppState; dispatch: R
         </div>
 
         {currentItem && (
-          <aside className="tip-card is-center">
-            <button
-              type="button"
-              className="close-tip"
+          <>
+            <div
+              className="tip-backdrop"
               onClick={() => setActiveTipItem(null)}
-              aria-label="关闭提示"
-            >
-              ×
-            </button>
-            <p className="eyebrow italic">TRAVELER TIP · 真实贴士</p>
-            <h2>{currentItem.name}</h2>
-            <p className="tip-rule">{currentItem.subtitle}</p>
-            <p className="tip-detail">{currentItem.tip}</p>
-            <div className="tip-actions">
+              aria-hidden="true"
+            />
+            <aside className="tip-card is-center" role="dialog" aria-modal="true">
               <button
                 type="button"
-                className="primary-button small"
+                className="close-tip"
                 onClick={() => setActiveTipItem(null)}
+                aria-label="关闭提示"
               >
-                收好这件物品 <span>✓</span>
+                ×
               </button>
-            </div>
-          </aside>
+              <p className="eyebrow italic">TRAVELER TIP · 真实贴士</p>
+              <h2>{currentItem.name}</h2>
+              <p className="tip-rule">{currentItem.subtitle}</p>
+              <p className="tip-detail">{currentItem.tip}</p>
+              <div className="tip-actions">
+                <button
+                  type="button"
+                  className="primary-button small"
+                  onClick={() => setActiveTipItem(null)}
+                >
+                  收好这件物品 <span>✓</span>
+                </button>
+              </div>
+            </aside>
+          </>
         )}
       </section>
     );
@@ -180,10 +187,12 @@ export function PackingStage({ state, dispatch }: { state: AppState; dispatch: R
         </div>
 
         {missingMust.length > 0 && (
-          <aside className="tip-card is-center">
-            <p className="eyebrow italic">IMPORTANT REMINDER · 关键提醒</p>
-            <h2>你可能忘了最重要的：{missingMust[0].name}</h2>
-            <p>{missingMust[0].tip}</p>
+          <div className="missing-must-banner">
+            <div className="missing-must-text">
+              <p className="eyebrow italic">IMPORTANT REMINDER · 关键提醒</p>
+              <strong>你可能忘了最重要的：{missingMust[0].name}</strong>
+              <p>{missingMust[0].tip}</p>
+            </div>
             <button
               type="button"
               className="primary-button small"
@@ -197,7 +206,7 @@ export function PackingStage({ state, dispatch }: { state: AppState; dispatch: R
             >
               现在补上它 <span>+</span>
             </button>
-          </aside>
+          </div>
         )}
 
         <div className="timeline-actions">
