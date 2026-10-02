@@ -126,6 +126,7 @@ export function GuidanceOverlay({
     securityPlaced.includes('phone') &&
     securityPlaced.includes('powerbank') &&
     securityPlaced.includes('bag');
+  const isSecurityPhase = ['security', 'securityDemo', 'securityTip'].includes(state.phase);
 
   return (
     <>
@@ -714,7 +715,9 @@ export function GuidanceOverlay({
         )}
       </main>
 
-      <PixelPerson className="companion-badge" gender={state.avatarId} label="这是你" />
+      {!isSecurityPhase && (
+        <PixelPerson className="companion-badge" gender={state.avatarId} label="这是你" />
+      )}
 
       {tipOpen && tip && (
         <aside className="tip-card">

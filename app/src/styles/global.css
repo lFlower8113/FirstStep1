@@ -15,17 +15,19 @@ button:focus-visible { outline: 1px solid var(--warm); outline-offset: 5px; }
 .pixel-person { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .pixel-person canvas { width: calc(24px * var(--pixel-scale, 3)); height: calc(32px * var(--pixel-scale, 3)); image-rendering: pixelated; image-rendering: crisp-edges; }
 .pixel-person span { color: rgba(238,242,250,.5); font-size: 10px; letter-spacing: .16em; }
-.companion-badge { position: absolute; z-index: 4; right: 28px; bottom: 24px; opacity: .88; filter: drop-shadow(0 10px 24px rgba(0,0,0,.55)); animation: badge-breathe 4.2s ease-in-out infinite; transition: opacity .3s; }
-.companion-badge:hover { opacity: 1; }
-.avatar-option .pixel-frame { display: grid; place-items: center; padding: 16px 20px 20px; border: 1px solid rgba(255,255,255,.1); border-radius: 4px; background: rgba(255,255,255,.03); transition: .3s; }
-.avatar-option.is-selected .pixel-frame { border-color: rgba(245,189,135,.7); background: rgba(245,189,135,.1); box-shadow: 0 0 34px rgba(245,189,135,.2); transform: translateY(-6px); }
-.avatar-label { color: inherit; font-size: 13px; }
-.avatar-option small { color: rgba(190,199,216,.45); font-size: 11px; }
-.world-wash { z-index: 2; pointer-events: none; background: radial-gradient(ellipse at 50% 46%, transparent 0 30%, rgba(0,0,0,.1) 52%, rgba(0,0,0,.5) 100%); }
-.companion-badge { position: absolute; z-index: 4; right: 30px; bottom: 26px; width: 74px; opacity: .82; filter: drop-shadow(0 10px 26px rgba(0,0,0,.5)); transition: opacity .3s, transform .3s; animation: badge-breathe 4.2s ease-in-out infinite; }
-.companion-badge svg { display: block; width: 100%; height: auto; }
-.companion-badge span { display: block; margin-top: 4px; color: rgba(238,242,250,.5); font-size: 10px; letter-spacing: .16em; text-align: center; }
+.companion-badge {
+  position: absolute;
+  z-index: 4;
+  right: 30px;
+  bottom: 26px;
+  width: 74px;
+  opacity: .85;
+  filter: drop-shadow(0 10px 26px rgba(0,0,0,.5));
+  transition: opacity .35s ease, transform .35s ease;
+  animation: badge-breathe 4.2s ease-in-out infinite;
+}
 .companion-badge:hover { opacity: 1; transform: translateY(-3px); }
+.companion-badge span { display: block; margin-top: 4px; color: rgba(238,242,250,.5); font-size: 10px; letter-spacing: .16em; text-align: center; }
 /* Packing: the first-flight nerves start at home, before the airport. */
 .packing-stage {
   position: absolute;
