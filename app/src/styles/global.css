@@ -6,6 +6,8 @@ body { overflow: hidden; background: var(--ink); color: var(--silver); font-fami
 button { font: inherit; color: inherit; }
 button:focus-visible { outline: 1px solid var(--warm); outline-offset: 5px; }
 .app-shell { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--ink); }
+.app-shell.is-free-look .world-layer canvas { cursor: grab; }
+.app-shell.is-free-look.is-dragging .world-layer canvas { cursor: grabbing; }
 .world-layer, .world-layer canvas, .world-wash { position: absolute; inset: 0; width: 100%; height: 100%; }
 .world-layer { z-index: 1; }
 .starfield { z-index: 0; }
@@ -24,6 +26,28 @@ button:focus-visible { outline: 1px solid var(--warm); outline-offset: 5px; }
 .companion-badge svg { display: block; width: 100%; height: auto; }
 .companion-badge span { display: block; margin-top: 4px; color: rgba(238,242,250,.5); font-size: 10px; letter-spacing: .16em; text-align: center; }
 .companion-badge:hover { opacity: 1; transform: translateY(-3px); }
+/* Packing: the first-flight nerves start at home, before the airport. */
+.packing-stage { position: absolute; inset: 0; z-index: 5; }
+.packing-inner { position: relative; z-index: 2; width: min(880px, calc(100% - 44px)); margin: 0 auto; padding: 14vh 0 10vh; }
+.packing-inner h1 { margin: 12px 0 10px; font-family: "Noto Serif SC", serif; font-size: clamp(30px, 4.6vw, 54px); font-weight: 400; letter-spacing: .08em; text-shadow: 0 6px 30px rgba(0,0,0,.7); }
+.packing-inner .muted { margin: 0 0 34px; max-width: 520px; }
+.pack-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 34px; }
+.pack-item { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 18px 18px 20px; border: 1px solid rgba(220,228,242,.16); border-radius: 3px; background: rgba(10,14,22,.5); color: var(--silver); text-align: left; cursor: pointer; transition: .28s; }
+.pack-item:hover { border-color: rgba(245,189,135,.6); background: rgba(245,189,135,.08); transform: translateY(-3px); }
+.pack-item.is-packed { border-color: rgba(127,224,168,.5); background: rgba(127,224,168,.08); }
+.pack-item.is-caution { border-color: rgba(245,189,135,.4); }
+.pack-icon { font-size: 26px; line-height: 1; color: rgba(226,234,248,.7); }
+.pack-name { font-family: "Noto Serif SC", serif; font-size: 15px; }
+.pack-flag { position: absolute; top: 14px; right: 14px; padding: 2px 7px; border-radius: 2px; background: rgba(245,189,135,.18); color: var(--warm-bright); font-size: 10px; letter-spacing: .1em; }
+.packing-summary { display: flex; flex-wrap: wrap; gap: 26px; margin: 8px 0 34px; }
+.packing-summary p { margin: 0; color: var(--silver-soft); font-size: 14px; }
+.packing-summary span { margin-right: 8px; color: var(--warm-bright); font-family: "Cormorant Garamond", serif; font-size: 24px; vertical-align: -2px; }
+.packing-summary .warn span { color: #f5bd87; }
+.primary-button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+/* Gate area: the number must be readable from the far end. */
+.gate-number { position: absolute; z-index: 3; left: 50%; top: 42%; transform: translate(-50%, -50%); font-family: "Cormorant Garamond", serif; font-size: clamp(72px, 13vw, 170px); font-style: italic; color: rgba(245,189,135,.5); pointer-events: none; }
+
 .scene-hint { margin: 4px 0 18px; color: var(--silver-soft); font-size: 13px; line-height: 1.85; }
 .scene-hint strong { color: var(--warm-bright); font-weight: 500; letter-spacing: .06em; }
 .scene-hint span { display: block; color: var(--silver-dim); }
@@ -38,7 +62,8 @@ button:focus-visible { outline: 1px solid var(--warm); outline-offset: 5px; }
 .hero-en { margin: 10px 0 2px; font-family: "Cormorant Garamond", serif; font-size: clamp(72px, 13vw, 190px); font-style: italic; font-weight: 400; letter-spacing: -.025em; line-height: .9; background: linear-gradient(120deg, #f2edf0 12%, #ecc0a9 48%, #b9cce4 88%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 14px 34px rgba(0,0,0,.42)); }
 .hero-zh { margin: 18px 0 0; color: var(--silver-soft); font-family: "Noto Serif SC", serif; font-size: clamp(15px, 1.7vw, 22px); letter-spacing: .3em; }
 .lead { color: rgba(231,236,247,.74); font-family: "Noto Serif SC", serif; font-size: clamp(15px, 1.5vw, 20px); line-height: 2; }
-.guidance-panel { left: 7vw; bottom: 10vh; max-width: 440px; }
+.active-action-row { display: flex; align-items: center; gap: 18px; margin-top: 6px; flex-wrap: wrap; }
+.guidance-panel { left: 7vw; bottom: 10vh; max-width: 460px; filter: drop-shadow(0 8px 24px rgba(0,0,0,.7)); }
 .guidance-panel h1, .reflection-panel h1 { margin: 11px 0 24px; white-space: nowrap; font-family: "Noto Serif SC", serif; font-size: clamp(23px, 3vw, 42px); font-weight: 400; line-height: 1.55; text-shadow: 0 6px 30px rgba(0,0,0,.8); }
 .eyebrow { margin: 0; color: var(--silver-dim); font-size: 10px; letter-spacing: .24em; }
 .italic { font-family: "Cormorant Garamond", serif; font-size: 17px; letter-spacing: .15em; color: rgba(238,242,250,.65); }
@@ -53,6 +78,475 @@ button:focus-visible { outline: 1px solid var(--warm); outline-offset: 5px; }
 .text-action + .text-action { margin-left: 22px; }
 .text-action:hover, .tip-link:hover { color: #fff; border-color: var(--warm-bright); }
 .object-actions { display: flex; gap: 10px; }
+/* Packing items & details */
+.pack-item-header { display: flex; width: 100%; justify-content: space-between; align-items: center; }
+.pack-flag.is-must { background: rgba(245,189,135,.22); color: #ffd6ae; border: 1px solid rgba(245,189,135,.4); }
+.pack-flag.is-caution { background: rgba(230,160,110,.2); color: #f5bd87; border: 1px solid rgba(230,160,110,.4); }
+.pack-flag.is-normal { background: rgba(140,180,230,.15); color: #b4d2f5; border: 1px solid rgba(140,180,230,.3); }
+.pack-subtitle { font-size: 11px; color: rgba(190,206,232,.62); line-height: 1.4; }
+.pack-status { margin-top: auto; font-size: 11px; color: var(--warm-bright); letter-spacing: .06em; }
+.packing-bottom-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; margin-top: 14px; }
+.packing-quick-status { display: flex; flex-wrap: wrap; gap: 10px; }
+.status-pill { padding: 6px 14px; border-radius: 999px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: var(--silver-dim); font-size: 11px; }
+.status-pill.is-ok { border-color: rgba(127,224,168,.5); color: #7fe0a8; background: rgba(127,224,168,.08); }
+.status-pill.is-warn { border-color: rgba(245,189,135,.6); color: #f5bd87; background: rgba(245,189,135,.1); }
+
+/* Timeline card */
+.timeline-card { padding: 22px 26px; border: 1px solid rgba(245,189,135,.35); border-radius: 6px; background: rgba(14,21,32,.78); box-shadow: 0 16px 50px rgba(0,0,0,.5); backdrop-filter: blur(14px); margin-bottom: 24px; }
+.timeline-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+.flight-badge { display: inline-block; padding: 3px 10px; border-radius: 3px; background: rgba(245,189,135,.2); color: var(--warm-bright); font-weight: 600; font-size: 12px; margin-right: 12px; }
+.takeoff-time { font-size: 13px; color: var(--silver-soft); }
+.takeoff-time span { font-family: "Cormorant Garamond", serif; font-size: 26px; color: var(--warm-bright); margin-left: 8px; vertical-align: -2px; }
+.timeline-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.08); }
+.timeline-node { display: flex; flex-direction: column; gap: 5px; }
+.node-time { font-family: "Cormorant Garamond", serif; font-size: 24px; color: var(--warm-bright); }
+.timeline-node.is-highlight .node-time { color: #7fe0a8; }
+.node-label { font-size: 13px; font-weight: 500; color: #eef3fb; }
+.timeline-node small { font-size: 11px; color: var(--silver-dim); line-height: 1.5; }
+.timeline-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 26px; }
+
+/* Flight SMS Hud */
+.flight-find-hud { max-width: 440px; margin-bottom: 14px; }
+.flight-sms-card { padding: 12px 16px; border: 1px solid rgba(140,180,230,.25); border-radius: 6px; background: rgba(16,26,42,.85); backdrop-filter: blur(12px); margin-bottom: 12px; animation: slide-in .4s both; }
+.sms-badge { display: block; font-size: 10px; letter-spacing: .12em; color: #9fc4ea; margin-bottom: 4px; }
+.flight-sms-card p { margin: 0; font-size: 12px; line-height: 1.6; color: rgba(226,234,248,.9); }
+.flight-sms-card strong { color: var(--warm-bright); }
+
+/* Counter interaction */
+.counter-interaction-box { margin-top: 12px; max-width: 460px; }
+.counter-dialog { display: flex; flex-direction: column; gap: 12px; animation: fade-up .4s both; }
+.staff-speech { padding: 14px 18px; border-radius: 4px; background: rgba(20,30,46,.85); border-left: 3px solid var(--warm); backdrop-filter: blur(12px); }
+.staff-avatar { display: block; font-size: 11px; color: var(--warm-bright); margin-bottom: 5px; letter-spacing: .08em; }
+.staff-speech p { margin: 0; font-size: 13px; line-height: 1.7; color: #e9eefa; }
+.luggage-choices { display: flex; flex-direction: column; gap: 10px; }
+.choice-button { padding: 12px 18px; text-align: left; border: 1px solid rgba(255,255,255,.14); border-radius: 4px; background: rgba(255,255,255,.04); color: var(--silver); cursor: pointer; transition: .25s; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+.choice-button:hover { border-color: var(--warm); background: rgba(245,189,135,.08); color: #fff; transform: translateY(-2px); }
+.choice-button.is-highlight { border-color: rgba(245,189,135,.45); }
+.counter-ticket-ready { animation: fade-up .5s both; }
+
+/* Security station HUD */
+.security-station-hud { margin-top: 12px; max-width: 480px; }
+.security-tray-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0; }
+.tray-item { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 14px 8px; border: 1px dashed rgba(220,228,242,.28); border-radius: 4px; background: rgba(16,24,38,.7); color: var(--silver); cursor: pointer; transition: .25s; }
+.tray-item:hover { border-color: var(--warm); background: rgba(245,189,135,.1); transform: translateY(-2px); }
+.tray-item.is-placed { border-style: solid; border-color: rgba(127,224,168,.6); background: rgba(127,224,168,.12); color: #7fe0a8; }
+.tray-icon { font-size: 24px; margin-bottom: 6px; }
+.tray-item strong { display: block; font-size: 12px; font-weight: 500; margin-bottom: 3px; }
+.tray-item small { font-size: 10px; color: var(--silver-dim); }
+.security-done-box { margin-top: 14px; animation: fade-up .5s both; }
+
+/* Boarding HUD & Cabin */
+.boarding-hud { margin-top: 12px; max-width: 460px; animation: fade-up .5s both; }
+.cabin-seated-card { padding: 18px 22px; border-radius: 6px; background: rgba(16,28,44,.88); border: 1px solid rgba(245,189,135,.4); backdrop-filter: blur(14px); max-width: 440px; animation: fade-up .6s both; }
+.cabin-badge { font-size: 12px; color: var(--warm-bright); font-weight: 500; margin-bottom: 8px; letter-spacing: .08em; }
+.cabin-seated-card p { margin: 0 0 16px; font-size: 13px; line-height: 1.8; color: rgba(226,234,248,.88); }
+
+/* Pixel Airplane sprite */
+.pixel-airplane {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.45));
+}
+.pixel-airplane canvas {
+  width: calc(48px * var(--plane-scale, 3.5));
+  height: calc(26px * var(--plane-scale, 3.5));
+  image-rendering: pixelated;
+}
+
+/* Starry Sky Finale Stage */
+.finale-stage-container {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px 40px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.finale-main-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 660px;
+  width: 100%;
+  margin: auto;
+  z-index: 5;
+}
+
+/* Centerpiece with pixel plane and person floating in starry sky */
+.finale-centerpiece {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.finale-sprites-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  animation: finale-float 4s ease-in-out infinite alternate;
+}
+
+.finale-airplane-wrapper {
+  transform: translateY(-4px);
+  filter: drop-shadow(0 0 16px rgba(245, 189, 135, 0.22));
+}
+
+.finale-person-wrapper {
+  transform: translateY(6px);
+}
+
+.flight-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: rgba(14, 22, 36, 0.72);
+  border: 1px solid rgba(245, 189, 135, 0.35);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  font-size: 11px;
+  color: var(--silver-soft);
+}
+
+.pill-flight {
+  color: var(--warm-bright);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+.pill-dot {
+  opacity: 0.35;
+}
+
+.pill-status {
+  color: #a8d5ff;
+}
+
+.pill-seat {
+  color: var(--warm);
+}
+
+/* Narrative cards */
+.finale-card-wrapper {
+  width: 100%;
+}
+
+.finale-narrative-card {
+  padding: 28px 34px;
+  border-radius: 12px;
+  background: rgba(12, 19, 32, 0.82);
+  border: 1px solid rgba(245, 189, 135, 0.4);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.finale-narrative-card.is-reflection {
+  background: linear-gradient(150deg, rgba(14, 22, 38, 0.86) 0%, rgba(9, 14, 24, 0.92) 100%);
+}
+
+.finale-narrative-card.is-complete {
+  background: linear-gradient(155deg, rgba(16, 26, 44, 0.88) 0%, rgba(9, 15, 26, 0.94) 100%);
+  border-color: rgba(245, 189, 135, 0.5);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.75), 0 0 40px rgba(245, 189, 135, 0.12);
+}
+
+.finale-card-eyebrow {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--silver-dim);
+  margin-bottom: 8px;
+}
+
+.finale-card-title {
+  margin: 8px 0 16px;
+  font-family: "Noto Serif SC", serif;
+  font-size: clamp(22px, 2.5vw, 30px);
+  font-weight: 400;
+  line-height: 1.45;
+  color: #fff;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+}
+
+.finale-card-text {
+  margin: 0 0 22px;
+  font-size: 13.5px;
+  line-height: 1.85;
+  color: rgba(225, 235, 250, 0.88);
+}
+
+.finale-card-actions {
+  display: flex;
+  margin-top: 20px;
+}
+
+.finale-reflection-observation {
+  margin: 10px 0 14px;
+  font-family: "Noto Serif SC", serif;
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.8;
+  color: #fff;
+}
+
+.finale-reflection-meaning {
+  margin: 0 0 14px;
+  font-size: 13.5px;
+  line-height: 1.85;
+  color: rgba(220, 232, 248, 0.88);
+}
+
+.finale-reflection-closing {
+  font-family: "Noto Serif SC", serif;
+  font-size: 15px;
+  color: var(--warm-bright);
+  line-height: 1.6;
+  margin: 0 0 22px;
+}
+
+.finale-loading-box {
+  display: flex;
+  align-items: center;
+  padding: 24px 0;
+  color: var(--silver-dim);
+  font-size: 13px;
+}
+
+.finale-takeaways-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 18px 0 24px;
+}
+
+.finale-takeaway-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 11px 15px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.25s, border-color 0.25s;
+}
+
+.finale-takeaway-item:hover {
+  background: rgba(245, 189, 135, 0.06);
+  border-color: rgba(245, 189, 135, 0.28);
+}
+
+.takeaway-badge {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 19px;
+  color: var(--warm);
+  line-height: 1;
+  padding-top: 1px;
+}
+
+.takeaway-content strong {
+  display: block;
+  font-size: 13px;
+  color: #fff;
+  margin-bottom: 3px;
+}
+
+.takeaway-content p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--silver-dim);
+  line-height: 1.6;
+}
+
+.finale-complete-lead {
+  margin: 0 0 24px;
+  font-size: 14px;
+  line-height: 1.9;
+  color: rgba(234, 241, 252, 0.92);
+}
+
+@keyframes finale-float {
+  0% { transform: translateY(0px); }
+  100% { transform: translateY(-8px); }
+}
+
+/* Cabin Window Seat Grand Finale HUD */
+.cabin-overlay-hud {
+  position: absolute;
+  left: 6vw;
+  bottom: 8vh;
+  width: min(540px, calc(100vw - 36px));
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.cabin-overlay-card {
+  padding: 26px 30px;
+  border-radius: 10px;
+  background: rgba(12, 20, 32, 0.78);
+  border: 1px solid rgba(245, 189, 135, 0.42);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(20px);
+  animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.cabin-overlay-card.is-reflection {
+  background: linear-gradient(145deg, rgba(14, 22, 36, 0.82) 0%, rgba(9, 14, 24, 0.88) 100%);
+  border-color: rgba(245, 189, 135, 0.5);
+}
+
+.cabin-overlay-card.is-takeaways {
+  background: rgba(11, 18, 30, 0.82);
+  max-width: 580px;
+}
+
+.cabin-overlay-card.is-complete {
+  background: linear-gradient(155deg, rgba(16, 26, 42, 0.85) 0%, rgba(9, 15, 25, 0.9) 100%);
+  border-color: rgba(245, 189, 135, 0.55);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.75), 0 0 45px rgba(245, 189, 135, 0.12);
+}
+
+.cabin-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(245, 189, 135, 0.14);
+  border: 1px solid rgba(245, 189, 135, 0.32);
+  font-size: 11px;
+  color: var(--warm-bright);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+}
+
+.cabin-card-title {
+  margin: 6px 0 14px;
+  font-family: "Noto Serif SC", serif;
+  font-size: clamp(20px, 2.3vw, 29px);
+  font-weight: 400;
+  line-height: 1.5;
+  color: #fff;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+}
+
+.cabin-card-desc {
+  margin: 0 0 20px;
+  font-size: 13.5px;
+  line-height: 1.85;
+  color: rgba(225, 235, 250, 0.9);
+}
+
+.cabin-loading-box {
+  display: flex;
+  align-items: center;
+  padding: 24px 0;
+  color: var(--silver-dim);
+  font-size: 13px;
+}
+
+.reflection-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.reflection-meaning {
+  margin: 0 0 14px;
+  font-size: 13.5px;
+  line-height: 1.85;
+  color: rgba(220, 232, 248, 0.88);
+}
+
+.takeaways-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 16px 0 22px;
+}
+
+.takeaway-card-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 11px 14px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: border-color 0.25s, background 0.25s;
+}
+
+.takeaway-card-item:hover {
+  background: rgba(245, 189, 135, 0.06);
+  border-color: rgba(245, 189, 135, 0.28);
+}
+
+.takeaway-num {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 18px;
+  color: var(--warm);
+  line-height: 1;
+  padding-top: 2px;
+}
+
+.takeaway-text strong {
+  display: block;
+  font-size: 13px;
+  color: #fff;
+  margin-bottom: 3px;
+}
+
+.takeaway-text p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--silver-dim);
+  line-height: 1.6;
+}
+
+.cabin-complete-lead {
+  margin: 0 0 24px;
+  font-size: 14px;
+  line-height: 1.9;
+  color: rgba(234, 241, 252, 0.92);
+}
+
+.complete-btn-row {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+/* Floating Boarding Pass Modal */
+.boarding-pass-modal { position: absolute; z-index: 5; right: 7vw; top: 16vh; width: min(440px, calc(100% - 40px)); animation: slide-in .6s both; }
+.boarding-pass-card { border: 1px solid rgba(245,189,135,.45); border-radius: 8px; background: linear-gradient(135deg, #0e1726 0%, #172438 100%); box-shadow: 0 24px 80px rgba(0,0,0,.7); overflow: hidden; backdrop-filter: blur(16px); }
+.bp-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: rgba(245,189,135,.12); border-bottom: 1px solid rgba(245,189,135,.22); }
+.bp-airline { display: block; font-size: 9px; letter-spacing: .22em; color: var(--silver-dim); }
+.bp-title { font-family: "Noto Serif SC", serif; font-size: 14px; font-weight: 500; color: #fff; }
+.bp-class { font-size: 10px; letter-spacing: .15em; color: var(--warm-bright); }
+.bp-body { padding: 16px 20px; }
+.bp-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 14px; }
+.bp-field { display: flex; flex-direction: column; gap: 3px; }
+.bp-field small { font-size: 9px; letter-spacing: .1em; color: rgba(190,206,232,.55); }
+.bp-field strong { font-size: 13px; font-weight: 500; color: #eaf1fa; }
+.bp-field strong.is-warm { color: #ffd6ae; }
+.seat-highlight { font-family: "Cormorant Garamond", serif; font-size: 22px; color: #f5bd87; font-weight: 600; line-height: 1; }
+.bp-barcode-stub { padding: 12px 20px; background: rgba(6,11,18,.75); border-top: 1px dashed rgba(255,255,255,.14); }
+.barcode-graphic { height: 26px; background: repeating-linear-gradient(90deg, #fff 0, #fff 2px, transparent 2px, transparent 5px, #fff 5px, #fff 7px, transparent 7px, transparent 9px); opacity: .65; margin-bottom: 6px; }
+.bp-barcode-stub p { margin: 0; font-size: 10px; color: var(--silver-dim); text-align: center; }
+.bp-barcode-stub strong { color: var(--warm-bright); }
+
 .object-actions button { padding: 10px 18px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.04); cursor: pointer; transition: .25s; }
 .object-actions button:hover { border-color: var(--warm); color: var(--warm-bright); }
 .tip-card.is-center { right: auto; left: 50%; bottom: auto; top: 50%; transform: translate(-50%, -50%); width: min(360px, calc(100% - 40px)); }
@@ -135,4 +629,4 @@ button:focus-visible { outline: 1px solid var(--warm); outline-offset: 5px; }
 .library-back:hover { color: #fff; border-color: rgba(220,228,242,.6); }
 @keyframes pulse { to { opacity: .2; transform: scale(.65); } } @keyframes fade-up { from { opacity: 0; transform: translateY(14px); } } @keyframes slide-in { from { opacity: 0; transform: translateY(16px) translateX(8px); } } @keyframes card-drift { 0% { margin-top: -5px; } 100% { margin-top: 8px; } } @keyframes badge-breathe { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .001ms !important; } }
-@media (max-width: 680px) { .topbar { top: 20px; left: 20px; right: 20px; }.guidance-panel, .reflection-panel { left: 22px; right: 22px; bottom: 7vh; }.guidance-panel h1, .reflection-panel h1 { white-space: normal; font-size: 27px; }.tip-card, .ai-note { right: 20px; bottom: 23vh; }.reflection-actions { left: 22px; bottom: 5vh; }.avatar-blob { width: 62px; height: 94px; }.avatar-hair { width: 48px; left: 7px; }.avatar-eye.left { left: 22px; }.avatar-eye.right { right: 22px; }.cover-card.city { top: 12%; left: -2%; width: 27vw; height: 35vw; }.cover-card.snow { top: 16%; right: -3%; width: 25vw; height: 32vw; }.cover-card.note { bottom: 10%; left: -1%; width: 26vw; height: 21vw; }.cover-card.wing { right: -1%; bottom: 11%; width: 32vw; height: 24vw; }.cover-hero { width: calc(100% - 32px); }.cover-hero strong { font-size: clamp(64px, 18vw, 110px); }.cover-kicker { font-size: 14px; }.cover-subtitle { font-size: 12px; }.cover-signature { right: 20px; bottom: 20px; } }
+@media (max-width: 680px) { .topbar { top: 20px; left: 20px; right: 20px; }.guidance-panel, .reflection-panel { left: 22px; right: 22px; bottom: 7vh; }.guidance-panel h1, .reflection-panel h1 { white-space: normal; font-size: 27px; }.cabin-overlay-hud { left: 16px; right: 16px; bottom: 5vh; width: auto; max-width: none; }.cabin-overlay-card { padding: 18px 20px; }.takeaway-card-item { padding: 9px 12px; }.tip-card, .ai-note { right: 20px; bottom: 23vh; }.reflection-actions { left: 22px; bottom: 5vh; }.avatar-blob { width: 62px; height: 94px; }.avatar-hair { width: 48px; left: 7px; }.avatar-eye.left { left: 22px; }.avatar-eye.right { right: 22px; }.cover-card.city { top: 12%; left: -2%; width: 27vw; height: 35vw; }.cover-card.snow { top: 16%; right: -3%; width: 25vw; height: 32vw; }.cover-card.note { bottom: 10%; left: -1%; width: 26vw; height: 21vw; }.cover-card.wing { right: -1%; bottom: 11%; width: 32vw; height: 24vw; }.cover-hero { width: calc(100% - 32px); }.cover-hero strong { font-size: clamp(64px, 18vw, 110px); }.cover-kicker { font-size: 14px; }.cover-subtitle { font-size: 12px; }.cover-signature { right: 20px; bottom: 20px; } }

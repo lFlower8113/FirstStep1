@@ -420,74 +420,6 @@ function finish() {
   }
 }
 
-/* ── interactive qr portal (wordless, aesthetic fusion) ────── */
-const QR_SRC = 'data:image/png;base64,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';
-const qrImg = new Image();
-qrImg.src = QR_SRC;
-
-function drawQR(t) {
-  const size = 220;
-  const marginX = 180;
-  const marginY = 160;
-  const x = W - marginX - size;
-  const y = H - marginY - size;
-  const r = 12;
-
-  ctx.save();
-
-  // 1. Subtle warm ambient glow behind the portal
-  const bgGlow = ctx.createRadialGradient(x + size / 2, y + size / 2, size * 0.2, x + size / 2, y + size / 2, size * 0.95);
-  bgGlow.addColorStop(0, 'rgba(255, 186, 120, 0.08)');
-  bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-  ctx.fillStyle = bgGlow;
-  ctx.fillRect(x - 40, y - 40, size + 80, size + 80);
-
-  // 2. Pure, rounded QR Code plate
-  ctx.fillStyle = '#ffffff';
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
-  ctx.shadowBlur = 24;
-  ctx.beginPath();
-  if (ctx.roundRect) {
-    ctx.roundRect(x, y, size, size, r);
-  } else {
-    ctx.rect(x, y, size, size);
-  }
-  ctx.fill();
-  ctx.shadowBlur = 0;
-
-  // Hairline subtle plate border
-  ctx.strokeStyle = 'rgba(214, 222, 238, 0.35)';
-  ctx.lineWidth = 1.2;
-  ctx.stroke();
-
-  // Draw high-resolution QR image with clean quiet zone
-  if (qrImg.complete && qrImg.naturalWidth > 0) {
-    const pad = 12;
-    ctx.drawImage(qrImg, x + pad, y + pad, size - pad * 2, size - pad * 2);
-  }
-
-  // 3. Delicate HUD corner brackets (framing the QR like a simulation reticle)
-  const offset = 14;
-  const bx = x - offset;
-  const by = y - offset;
-  const bw = size + offset * 2;
-  const bh = size + offset * 2;
-  const cornerLen = 16;
-  const breathe = 0.65 + Math.sin(t * 0.8) * 0.25;
-
-  ctx.strokeStyle = `rgba(255, 186, 120, ${breathe.toFixed(3)})`;
-  ctx.lineWidth = 2.0;
-
-  ctx.beginPath();
-  ctx.moveTo(bx, by + cornerLen); ctx.lineTo(bx, by); ctx.lineTo(bx + cornerLen, by);
-  ctx.moveTo(bx + bw - cornerLen, by); ctx.lineTo(bx + bw, by); ctx.lineTo(bx + bw, by + cornerLen);
-  ctx.moveTo(bx, by + bh - cornerLen); ctx.lineTo(bx, by + bh); ctx.lineTo(bx + cornerLen, by + bh);
-  ctx.moveTo(bx + bw - cornerLen, by + bh); ctx.lineTo(bx + bw, by + bh); ctx.lineTo(bx + bw, by + bh - cornerLen);
-  ctx.stroke();
-
-  ctx.restore();
-}
-
 /* ── frame ──────────────────────────────────────────────────── */
 function frame(t) {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -502,7 +434,6 @@ function frame(t) {
   drawDust(t);
   type(t);
   finish();
-  drawQR(t);
 }
 
 makeGrain();

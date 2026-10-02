@@ -33,3 +33,7 @@ app/.env.*
 Thumbs.db
 .vscode/
 .idea/
+.zcode/
+.zcodeignore
+proxy.cjs
+package-lock.json

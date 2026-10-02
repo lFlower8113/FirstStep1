@@ -6,15 +6,15 @@ export type Reflection = { title: string; observation: string; meaning: string; 
 const localReflection = (summary: SessionSummary): Reflection => {
   const seconds = Math.max(0, Math.round(summary.timeToFirstActionMs / 1000));
   const hesitant = summary.timeToFirstActionMs > 7000;
-  const first = hesitant ? `你在出发前停了一会儿，${seconds} 秒后才动了第一步。` : `${seconds} 秒，你就动了第一步。`;
+  const first = hesitant ? `在陌生的大厅前你稍微停顿了一下，观察了 ${seconds} 秒后迈出了第一步。` : `面对未知的大厅，你只用了 ${seconds} 秒就找到了第一步的方向。`;
   const second = summary.neededExtraGuidance
-    ? '有人给了你一点提示，你就继续往前了。'
-    : '你没有等所有不确定都消失，就先走出去了。';
+    ? '哪怕中间有拿不准的细节，顺着指引，你也一步步稳稳走到了最后。'
+    : '你没有等待所有未知消失，而是顺着大屏与路标从容完成了全程。';
   return {
-    title: '你已经走过一遍了',
+    title: '你已经完整走过一遍了',
     observation: `${first}${second}`,
-    meaning: '你不需要一次知道所有事情，才有资格走向下一步。',
-    closingLine: '这就是你的第一步。',
+    meaning: '坐飞机其实真的没有那么复杂，生活里的许多未知也是一样：收拾好行囊，带齐证件，每次只做好眼前这一步。',
+    closingLine: '你看，坐飞机原来这么简单。在现实中，你也完全可以迈出这一步。',
     source: 'local',
   };
 };

@@ -15,16 +15,20 @@ export type PhaseProgress = { z: number; walking: boolean };
    ───────────────────────────────────────────────────────────── */
 
 export const focusByPhase: Partial<Record<PhaseId, THREE.Vector3>> = {
-  observe: new THREE.Vector3(-5.4, 3.6, -8),
-  demoBoard: new THREE.Vector3(-5.4, 3.6, -8),
-  findFlight: new THREE.Vector3(-5.4, 3.6, -8),
-  baggage: new THREE.Vector3(5.8, 1.5, -14),
-  followPath: new THREE.Vector3(0, 0.4, -17),
+  arrival: new THREE.Vector3(-6.2, 4.1, -8),
+  observe: new THREE.Vector3(-6.2, 4.1, -8),
+  demoBoard: new THREE.Vector3(-6.2, 4.1, -8),
+  findFlight: new THREE.Vector3(-6.2, 4.1, -8),
+  goCounter: new THREE.Vector3(-9.4, 1.9, -17),
+  baggage: new THREE.Vector3(-9.4, 1.9, -17),
+  followPath: new THREE.Vector3(1.5, 1.6, -21),
   securityDemo: new THREE.Vector3(3.4, 1.6, -24),
   securityTip: new THREE.Vector3(3.4, 1.6, -24),
   security: new THREE.Vector3(3.4, 1.6, -24),
-  reduceGuidance: new THREE.Vector3(0, 1.2, -30),
-  findGate: new THREE.Vector3(0, 2.4, -46),
+  reduceGuidance: new THREE.Vector3(0, 1.8, -32),
+  waitGate: new THREE.Vector3(0, 3.2, -44.6),
+  findGate: new THREE.Vector3(0, 2.6, -46),
+  board: new THREE.Vector3(0, 2.4, -46),
   arrive: new THREE.Vector3(0, 2.4, -46),
 };
 
@@ -32,20 +36,27 @@ export const companionStop: Record<PhaseId, PhaseProgress> = {
   landing: { z: 0, walking: false },
   avatar: { z: 0, walking: false },
   intro: { z: 0, walking: false },
+  packing: { z: 0, walking: false },
+  packingList: { z: 0, walking: false },
+  arrival: { z: 0, walking: false },
+  lookAround: { z: 0, walking: false },
   observe: { z: 0, walking: false },
-  demoBoard: { z: -4, walking: true },
+  demoBoard: { z: -4.2, walking: true },
   findFlight: { z: -5.4, walking: false },
-  baggage: { z: -11, walking: true },
-  followPath: { z: -17, walking: true },
-  securityDemo: { z: -21, walking: true },
-  securityTip: { z: -22, walking: false },
-  security: { z: -22, walking: false },
-  reduceGuidance: { z: -29, walking: true },
-  findGate: { z: -37, walking: true },
-  arrive: { z: -44, walking: true },
-  reflection: { z: -44, walking: false },
-  takeaways: { z: -44, walking: false },
-  complete: { z: -44, walking: false },
+  goCounter: { z: -14.2, walking: true },
+  baggage: { z: -15.2, walking: false },
+  followPath: { z: -18.5, walking: true },
+  securityDemo: { z: -21.5, walking: true },
+  securityTip: { z: -22.5, walking: false },
+  security: { z: -22.5, walking: false },
+  reduceGuidance: { z: -28, walking: true },
+  waitGate: { z: -35, walking: true },
+  findGate: { z: -39, walking: true },
+  board: { z: -43.5, walking: true },
+  arrive: { z: -45.5, walking: true },
+  reflection: { z: -45.5, walking: false },
+  takeaways: { z: -45.5, walking: false },
+  complete: { z: -45.5, walking: false },
 };
 
 const HALL = { length: 108, width: 30, height: 12 };
@@ -179,7 +190,7 @@ function useCounterTexture(number: string, status: 'open' | 'busy' | 'closed') {
   }, [number, status]);
 }
 
-function CounterUnit({ number, status, position }: { number: string; status: 'open' | 'busy' | 'closed'; position: [number, number, number] }) {
+function CounterUnit({ number, status, position, onSelect, canSelect }: { number: string; status: 'open' | 'busy' | 'closed'; position: [number, number, number]; onSelect: () => void; canSelect: boolean }) {
   const texture = useCounterTexture(number, status);
   return <group position={position}>
     <mesh position={[0, 0.55, 0]}><boxGeometry args={[2.7, 1.1, 2.5]} /><meshStandardMaterial color="#46536a" roughness={0.62} metalness={0.18} /></mesh>
@@ -187,17 +198,18 @@ function CounterUnit({ number, status, position }: { number: string; status: 'op
     <mesh position={[0, 1.95, -1.1]}><boxGeometry args={[1.3, 0.72, 0.08]} /><meshStandardMaterial color="#131c28" emissive="#22334a" emissiveIntensity={0.9} /></mesh>
     <mesh position={[0, 1.95, -1.02]}><planeGeometry args={[1.24, 0.66]} /><meshBasicMaterial map={texture} toneMapped={false} /></mesh>
     <mesh position={[0, 2.62, -1.1]}><boxGeometry args={[0.09, 0.7, 0.09]} /><meshStandardMaterial color="#2f3a49" /></mesh>
+    {canSelect && <mesh position={[0, 1.5, 0.6]} onClick={onSelect}><boxGeometry args={[3.2, 2.6, 3]} /><meshBasicMaterial transparent opacity={0} /></mesh>}
   </group>;
 }
 
-function CheckInCounters() {
+function CheckInCounters({ canSelect, onSelect }: { canSelect: boolean; onSelect: () => void }) {
   return <group>
     <mesh position={[-9.4, 3.5, -21]}><boxGeometry args={[0.4, 0.5, 14]} /><meshStandardMaterial color="#2a3543" /></mesh>
     <mesh position={[-9.4, 4.7, -21]}><planeGeometry args={[4.6, 0.66]} /><meshBasicMaterial color="#f5bd87" transparent opacity={0.55} toneMapped={false} /></mesh>
-    <CounterUnit number="A01" status="open" position={[-9.4, 0, -17]} />
-    <CounterUnit number="A02" status="busy" position={[-9.4, 0, -20.8]} />
-    <CounterUnit number="A03" status="open" position={[-9.4, 0, -24.6]} />
-    <CounterUnit number="A04" status="closed" position={[-9.4, 0, -28.4]} />
+    <CounterUnit number="A01" status="open" position={[-9.4, 0, -17]} canSelect={canSelect} onSelect={onSelect} />
+    <CounterUnit number="A02" status="busy" position={[-9.4, 0, -20.8]} canSelect={false} onSelect={onSelect} />
+    <CounterUnit number="A03" status="open" position={[-9.4, 0, -24.6]} canSelect={false} onSelect={onSelect} />
+    <CounterUnit number="A04" status="closed" position={[-9.4, 0, -28.4]} canSelect={false} onSelect={onSelect} />
   </group>;
 }
 
@@ -291,26 +303,41 @@ function GateBoard({ found }: { found: boolean }) {
   </group>;
 }
 
-function GatePortal({ onSelect, lit }: { onSelect: () => void; lit: boolean }) {
-  const texture = useMemo(() => {
+/* The gate number is the one thing a first-time flyer scans the hall for,
+   so it is rendered as a huge, high-contrast numeral. */
+function useGateNumberTexture(lit: boolean) {
+  return useMemo(() => {
     const canvas = document.createElement('canvas');
-    canvas.width = 640; canvas.height = 240;
+    canvas.width = 768; canvas.height = 384;
     const ctx = canvas.getContext('2d');
     if (!ctx) return new THREE.Texture();
-    ctx.fillStyle = 'rgba(10,16,25,0.96)'; ctx.fillRect(0, 0, 640, 240);
-    ctx.strokeStyle = 'rgba(190,206,232,0.24)'; ctx.lineWidth = 3; ctx.strokeRect(8, 8, 624, 224);
+    ctx.clearRect(0, 0, 768, 384);
     ctx.textAlign = 'center';
-    ctx.font = '500 70px "PingFang SC", "Microsoft YaHei", sans-serif';
-    ctx.fillStyle = '#eaf0fb'; ctx.fillText('18 号登机口', 320, 118);
-    ctx.font = '400 32px "Helvetica Neue", Arial, sans-serif';
-    ctx.fillStyle = 'rgba(245,189,135,0.88)'; ctx.fillText('GATE 18 · BOARDING', 320, 176);
+    ctx.font = '700 300px "Helvetica Neue", Arial, sans-serif';
+    ctx.fillStyle = lit ? '#ffd6ae' : '#eef4ff';
+    ctx.fillText('18', 384, 288);
+    ctx.font = '500 60px "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.fillStyle = lit ? '#f5bd87' : 'rgba(200,214,236,0.8)';
+    ctx.fillText('登机口', 384, 358);
     const created = new THREE.CanvasTexture(canvas);
     created.colorSpace = THREE.SRGBColorSpace;
     return created;
-  }, []);
+  }, [lit]);
+}
+
+function GatePortal({ onSelect, lit }: { onSelect: () => void; lit: boolean }) {
   return <group position={[0, 0, -46]}>
     <mesh position={[0, 5.1, 0]}><boxGeometry args={[7.6, 0.5, 0.5]} /><meshStandardMaterial color="#3d4a5c" roughness={0.58} metalness={0.32} /></mesh>
-    <mesh position={[0, 3.5, 0.12]}><planeGeometry args={[4.2, 1.58]} /><meshBasicMaterial map={texture} toneMapped={false} /></mesh>
+    {/* The big number is readable from the far end of the hall, which is
+        exactly how real gate signs are designed. */}
+    <mesh position={[0, 3.9, 0.14]}>
+      <planeGeometry args={[5.4, 2.4]} />
+      <meshBasicMaterial color={lit ? '#2a2016' : '#161d28'} toneMapped={false} />
+    </mesh>
+    <mesh position={[0, 3.9, 0.18]}>
+      <planeGeometry args={[4.4, 2]} />
+      <meshBasicMaterial map={useGateNumberTexture(lit)} transparent toneMapped={false} />
+    </mesh>
     {[-3.5, 3.5].map((x) => <mesh key={x} position={[x, 2.5, 0]}><boxGeometry args={[0.42, 5, 0.42]} /><meshStandardMaterial color="#445065" /></mesh>)}
     <mesh position={[0, 2.4, -1.4]}><planeGeometry args={[6, 4.8]} /><meshBasicMaterial color={lit ? '#f5bd87' : '#3d4a5c'} transparent opacity={lit ? 0.32 : 0.16} /></mesh>
     <mesh position={[0, 2.4, -1.3]} onClick={onSelect}><planeGeometry args={[6.4, 5.2]} /><meshBasicMaterial transparent opacity={0} /></mesh>
@@ -338,38 +365,191 @@ function Ceiling() {
     for (let z = 10; z > -HALL.length + 26; z -= 5) list.push(z);
     return list;
   }, []);
+  const downlights = useMemo(() => {
+    const list: { x: number; z: number }[] = [];
+    for (let z = 8; z > -HALL.length + 26; z -= 6.5) {
+      list.push({ x: -4.5, z }, { x: 4.5, z }, { x: 0, z });
+    }
+    return list;
+  }, []);
   return <group>
     <mesh position={[0, 0, MID_Z]} rotation={[Math.PI / 2, 0, 0]}>
       <cylinderGeometry args={[HALL.width / 2, HALL.width / 2, HALL.length, 48, 1, true]} />
-      <meshStandardMaterial color="#2a3646" side={THREE.BackSide} roughness={0.9} metalness={0.08} />
+      <meshStandardMaterial color="#2d394a" side={THREE.BackSide} roughness={0.85} metalness={0.12} />
     </mesh>
     {trusses.map((z) => <mesh key={z} position={[0, HALL.height - 1.4, z]} rotation={[0, 0, Math.PI / 2]}>
       <torusGeometry args={[HALL.width / 2 - 0.5, 0.16, 6, 40, Math.PI]} />
-      <meshStandardMaterial color="#2f3d4f" roughness={0.6} metalness={0.44} />
+      <meshStandardMaterial color="#415065" roughness={0.5} metalness={0.5} />
     </mesh>)}
+    {/* Warm downlight ceiling spots */}
+    {downlights.map((spot, i) => <group key={i} position={[spot.x, HALL.height - 1.6, spot.z]}>
+      <mesh rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.22, 0.26, 0.1, 16]} />
+        <meshStandardMaterial color="#303b4b" />
+      </mesh>
+      <mesh position={[0, -0.06, 0]}>
+        <circleGeometry args={[0.18, 16]} />
+        <meshBasicMaterial color="#fff4e0" toneMapped={false} />
+      </mesh>
+    </group>)}
+    {/* Central warm skylight strip */}
     {[-1, 1].map((side) => <mesh key={side} position={[side * 4.4, HALL.height - 1.9, MID_Z]}>
       <boxGeometry args={[0.34, 0.16, HALL.length * 0.94]} />
-      <meshStandardMaterial color="#f4f8ff" emissive="#e8f0ff" emissiveIntensity={2.6} toneMapped={false} />
+      <meshStandardMaterial color="#fff3db" emissive="#ffd699" emissiveIntensity={3.2} toneMapped={false} />
     </mesh>)}
     <mesh position={[0, HALL.height - 0.6, MID_Z]}>
       <boxGeometry args={[HALL.width * 0.46, 0.1, HALL.length * 0.94]} />
-      <meshStandardMaterial color="#2b3849" emissive="#3a4c66" emissiveIntensity={1.1} />
+      <meshStandardMaterial color="#4b5d77" emissive="#ffe1b3" emissiveIntensity={1.4} />
     </mesh>
+  </group>;
+}
+
+/* ── apron and blue sky outside the glass windows ─────────── */
+
+function useSkyTexture() {
+  return useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024; canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return new THREE.Texture();
+    // Sky blue gradient
+    const sky = ctx.createLinearGradient(0, 0, 0, 512);
+    sky.addColorStop(0, '#2b78d4');    // Deep clear zenith blue
+    sky.addColorStop(0.45, '#5c9fe8'); // Horizon sky blue
+    sky.addColorStop(0.72, '#a5ccf7'); // Warm horizon glow
+    sky.addColorStop(0.88, '#d4e6fc'); // Sunny mist
+    sky.addColorStop(1, '#94a7be');    // Distant tarmac ground
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, 1024, 512);
+
+    // Warm sun glare at top right
+    const sun = ctx.createRadialGradient(820, 90, 10, 820, 90, 240);
+    sun.addColorStop(0, 'rgba(255, 255, 240, 0.95)');
+    sun.addColorStop(0.3, 'rgba(255, 240, 200, 0.55)');
+    sun.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = sun;
+    ctx.fillRect(0, 0, 1024, 512);
+
+    // Soft fluffy white clouds
+    const drawCloud = (cx: number, cy: number, r: number) => {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.72)';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.arc(cx + r * 0.7, cy - r * 0.2, r * 0.75, 0, Math.PI * 2);
+      ctx.arc(cx - r * 0.7, cy - r * 0.1, r * 0.65, 0, Math.PI * 2);
+      ctx.arc(cx + r * 1.3, cy + r * 0.2, r * 0.55, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.fill();
+    };
+    drawCloud(220, 180, 54);
+    drawCloud(460, 230, 42);
+    drawCloud(740, 190, 60);
+    drawCloud(120, 270, 36);
+    drawCloud(900, 240, 45);
+
+    // Distant airport control tower & mountains silhouette
+    ctx.fillStyle = 'rgba(100, 130, 170, 0.35)';
+    ctx.beginPath();
+    ctx.moveTo(320, 420);
+    ctx.lineTo(330, 310);
+    ctx.lineTo(345, 300);
+    ctx.lineTo(345, 280);
+    ctx.lineTo(365, 280);
+    ctx.lineTo(365, 300);
+    ctx.lineTo(380, 310);
+    ctx.lineTo(390, 420);
+    ctx.closePath();
+    ctx.fill();
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }, []);
+}
+
+function ApronSkyView() {
+  const skyTexture = useSkyTexture();
+  return <group>
+    {/* Distant panoramic sky backdrop outside both window walls */}
+    {[-1, 1].map((side) => <group key={side} position={[side * (HALL.width / 2 + 12), 7, MID_Z]}>
+      {/* Sky backdrop plane */}
+      <mesh rotation={[0, side * -Math.PI / 2, 0]}>
+        <planeGeometry args={[HALL.length * 1.4, 28]} />
+        <meshBasicMaterial map={skyTexture} toneMapped={false} side={THREE.DoubleSide} />
+      </mesh>
+      {/* Apron ground tarmac plane outside */}
+      <mesh position={[side * -6, -6.8, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[26, HALL.length * 1.3]} />
+        <meshStandardMaterial color="#424c58" roughness={0.88} />
+      </mesh>
+      {/* Yellow tarmac taxi lines outside window */}
+      <mesh position={[side * -5, -6.75, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[0.3, HALL.length * 1.2]} />
+        <meshBasicMaterial color="#f0b842" />
+      </mesh>
+      {/* Parked Airliner Silhouette on the apron */}
+      <group position={[side * -4, -4.2, -18]} scale={side === 1 ? [-1, 1, 1] : [1, 1, 1]}>
+        {/* Fuselage */}
+        <mesh position={[0, 1.4, 0]} rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[1.5, 1.3, 19, 16]} />
+          <meshStandardMaterial color="#e8eff7" roughness={0.3} metalness={0.25} />
+        </mesh>
+        {/* Cockpit nose */}
+        <mesh position={[0, 1.4, 10.2]} rotation={[Math.PI / 2, 0, 0]}>
+          <coneGeometry args={[1.3, 2.8, 16]} />
+          <meshStandardMaterial color="#d4e1f0" roughness={0.3} />
+        </mesh>
+        {/* Wings */}
+        <mesh position={[0, 1.2, 0]} rotation={[0, 0, 0]}>
+          <boxGeometry args={[14, 0.2, 3.4]} />
+          <meshStandardMaterial color="#c2d3e5" roughness={0.4} />
+        </mesh>
+        {/* Tail fin with cheerful warm red/gold livery accent */}
+        <mesh position={[0, 3.5, -8.6]} rotation={[0.4, 0, 0]}>
+          <boxGeometry args={[0.2, 3.2, 2.6]} />
+          <meshStandardMaterial color="#356cb0" roughness={0.3} />
+        </mesh>
+        {/* Passenger windows row */}
+        <mesh position={[side * 1.45, 1.6, 1]} rotation={[0, Math.PI / 2, 0]}>
+          <planeGeometry args={[12, 0.24]} />
+          <meshBasicMaterial color="#1a2738" />
+        </mesh>
+      </group>
+    </group>)}
   </group>;
 }
 
 function WindowBands() {
   const panels = useMemo(() => {
     const list: number[] = [];
-    for (let z = 8; z > -HALL.length + 26; z -= 9) list.push(z);
+    for (let z = 8; z > -HALL.length + 26; z -= 8.5) list.push(z);
     return list;
   }, []);
   return <group>{[-1, 1].map((side) => <group key={side}>
-    {panels.map((z) => <mesh key={z} position={[side * (HALL.width / 2 - 0.2), 4.4, z]} rotation={[0, side * -Math.PI / 2, 0]}>
-      <planeGeometry args={[7.6, 7.2]} />
-      <meshStandardMaterial color="#9fc4ea" emissive="#bcd8f6" emissiveIntensity={1.5} transparent opacity={0.5} roughness={0.1} metalness={0.4} />
-    </mesh>)}
+    {panels.map((z) => <group key={z} position={[side * (HALL.width / 2 - 0.2), 4.8, z]} rotation={[0, side * -Math.PI / 2, 0]}>
+      {/* Translucent glass window with sky tint */}
+      <mesh>
+        <planeGeometry args={[7.8, 7.8]} />
+        <meshStandardMaterial color="#b8daf8" emissive="#6ca3d8" emissiveIntensity={0.65} transparent opacity={0.38} roughness={0.08} metalness={0.45} side={THREE.DoubleSide} />
+      </mesh>
+      {/* Window mullion grid frames */}
+      <mesh position={[0, 0, 0.02]}>
+        <boxGeometry args={[8.0, 0.1, 0.08]} />
+        <meshStandardMaterial color="#2d3848" roughness={0.6} />
+      </mesh>
+      <mesh position={[0, 0, 0.02]}>
+        <boxGeometry args={[0.1, 8.0, 0.08]} />
+        <meshStandardMaterial color="#2d3848" roughness={0.6} />
+      </mesh>
+    </group>)}
   </group>)}</group>;
+}
+
+function GlassWalls() {
+  return <group>{[-1, 1].map((side) => <mesh key={side} position={[side * (HALL.width / 2 + 1.2), 5, MID_Z]}>
+    <planeGeometry args={[HALL.length * 0.94, 9.6]} />
+    <meshStandardMaterial color="#8ec2f2" emissive="#a5d0f8" emissiveIntensity={0.3} transparent opacity={0.16} roughness={0.06} metalness={0.6} side={THREE.DoubleSide} />
+  </mesh>)}</group>;
 }
 
 function Columns() {
@@ -382,13 +562,6 @@ function Columns() {
     <mesh position={[0, 5, 0]}><cylinderGeometry args={[0.34, 0.48, 10, 14]} /><meshStandardMaterial color="#414e61" roughness={0.56} metalness={0.3} /></mesh>
     <mesh position={[0, 10, 0]}><boxGeometry args={[1.7, 0.22, 1.7]} /><meshStandardMaterial color="#39465a" roughness={0.68} /></mesh>
   </group>)}</group>;
-}
-
-function GlassWalls() {
-  return <group>{[-1, 1].map((side) => <mesh key={side} position={[side * (HALL.width / 2 + 1.4), 5, MID_Z]}>
-    <planeGeometry args={[HALL.length * 0.92, 9.4]} />
-    <meshStandardMaterial color="#182c44" emissive="#2a4a6e" emissiveIntensity={0.4} transparent opacity={0.22} roughness={0.12} metalness={0.5} side={THREE.DoubleSide} />
-  </mesh>)}</group>;
 }
 
 function Lightboxes() {
@@ -551,14 +724,17 @@ export function TerminalScene({
   gateLit,
   onSelectFlight,
   onSelectGate,
+  onSelectCounter,
 }: {
   state: AppState;
   flightHighlighted: boolean;
   gateLit: boolean;
   onSelectFlight: () => void;
   onSelectGate: () => void;
+  onSelectCounter: () => void;
 }) {
   return <group>
+    <ApronSkyView />
     <Ceiling />
     <WindowBands />
     <Columns />
@@ -575,7 +751,7 @@ export function TerminalScene({
     </mesh>
     <FloorLightPath progress={(state.flightAttempts > 0 ? 0.32 : 0) + (state.securityItemsPlaced.length >= 2 ? 0.36 : 0) + (state.gateFoundWithoutDirectHighlight ? 0.32 : 0)} />
     <FlightBoard highlighted={flightHighlighted} onSelect={onSelectFlight} />
-    <CheckInCounters />
+    <CheckInCounters canSelect={state.phase === 'goCounter'} onSelect={onSelectCounter} />
     <RuleBoard />
     <WayfindingSign position={[0, 6.2, -12]} width={6.4} rows={[{ arrow: 'up', cn: '安检', en: 'Security' }, { arrow: 'right', cn: '行李寄存', en: 'Left baggage' }, { arrow: 'left', cn: '出口', en: 'Exit' }]} />
     <WayfindingSign position={[0, 6.2, -32]} width={6.4} rows={[{ arrow: 'up', cn: '18 登机口', en: 'Gate 18' }, { arrow: 'left', cn: '洗手间', en: 'Restroom' }, { arrow: 'right', cn: '饮水点', en: 'Water' }]} />

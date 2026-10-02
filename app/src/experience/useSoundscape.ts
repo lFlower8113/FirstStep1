@@ -5,18 +5,20 @@ import type { PhaseId } from '../types';
    volume shift as the user moves from the terminal to the gate. No
    audio files, no network. Off by default so a live demo never makes
    unexpected noise. */
-type Mood = 'hall' | 'security' | 'gate' | 'quiet';
+type Mood = 'hall' | 'security' | 'gate' | 'quiet' | 'cruise';
 
 const MOODS: Record<Mood, { cutoff: number; gain: number; detune: number }> = {
-  hall: { cutoff: 320, gain: 0.055, detune: 0 },
-  security: { cutoff: 220, gain: 0.045, detune: -6 },
-  gate: { cutoff: 640, gain: 0.038, detune: 4 },
-  quiet: { cutoff: 160, gain: 0.022, detune: 0 },
+  hall: { cutoff: 360, gain: 0.055, detune: 0 },
+  security: { cutoff: 240, gain: 0.045, detune: -6 },
+  gate: { cutoff: 520, gain: 0.038, detune: 4 },
+  quiet: { cutoff: 200, gain: 0.024, detune: 0 },
+  cruise: { cutoff: 140, gain: 0.042, detune: -12 }, // Gentle soothing jet cabin hum
 };
 
 function moodFor(phase: PhaseId): Mood {
+  if (phase === 'arrive' || phase === 'reflection' || phase === 'takeaways' || phase === 'complete') return 'cruise';
   if (phase === 'securityDemo' || phase === 'securityTip' || phase === 'security') return 'security';
-  if (phase === 'findGate' || phase === 'arrive' || phase === 'reflection' || phase === 'takeaways' || phase === 'complete') return 'gate';
+  if (phase === 'findGate' || phase === 'board') return 'gate';
   if (phase === 'observe' || phase === 'demoBoard') return 'quiet';
   return 'hall';
 }
